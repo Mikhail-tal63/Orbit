@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type AuthRepository struct {
@@ -28,4 +29,13 @@ func (r *AuthRepository) GetUserByEmail(
 ) (db.User, error) {
 
 	return r.queries.GetUserByEmail(ctx, email)
+}
+
+func (r *AuthRepository) GetUserByID(ctx context.Context, id pgtype.UUID) (db.User, error) {
+	user, err := r.queries.GetUserByID(ctx, id)
+	if err != nil {
+		return db.User{}, err
+	}
+
+	return user, nil
 }
