@@ -6,8 +6,6 @@ import (
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 )
 
-
-
 type AuthRepository struct {
 	queries *db.Queries
 }
@@ -23,4 +21,11 @@ func (r *AuthRepository) CreateUser(
 ) error {
 
 	return r.queries.CreateUser(ctx, params)
+}
+func (r *AuthRepository) GetUserByEmail(
+	ctx context.Context,
+	email string,
+) (db.User, error) {
+
+	return r.queries.GetUserByEmail(ctx, email)
 }
