@@ -4,15 +4,20 @@ import (
 	"fmt"
 
 	"github.com/Mikhail-Tal63/Orbit/configs"
+	"github.com/Mikhail-Tal63/Orbit/internal/auth"
 	"github.com/Mikhail-Tal63/Orbit/internal/database"
+	db "github.com/Mikhail-Tal63/Orbit/internal/db"
 )
 
 func main() {
-
 	cfg := configs.Load()
 
-	db := database.Connect(*cfg)
-	defer db.Close()
+	pool := database.Connect(*cfg)
+	defer pool.Close()
 
+	queries := db.New(pool)
+
+	authRepo := auth.NewAuthRepository(queries)
+	print(authRepo)
 	fmt.Println("Orbit API starting...")
 }
