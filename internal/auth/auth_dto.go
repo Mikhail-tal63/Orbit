@@ -1,5 +1,7 @@
 package auth
 
+import "github.com/google/uuid"
+
 type RegisterRequest struct {
 	FirstName string `json:"first_name" validate:"required,min=3,max=50"`
 	LastName  string `json:"last_name" validate:"required,min=3,max=50"`
@@ -15,5 +17,16 @@ type LoginRequest struct {
 type AuthResponce struct {
 	RefreshToken string `json:"refresh_token"`
 	AccessToken  string `json:"access_token"`
-	User         User   `json:"user"`
+	User         UserDTO   `json:"user"`
+}
+
+type UserDTO struct {
+    ID        uuid.UUID `json:"id"`
+    FirstName string    `json:"first_name"`
+    LastName  string    `json:"last_name"`
+    Username  string    `json:"username"`
+    Email     string    `json:"email"`
+    Phone     string    `json:"phone"`
+    Role      string    `json:"role"`
+    ImageID   *uuid.UUID `json:"image_id,omitempty"`
 }

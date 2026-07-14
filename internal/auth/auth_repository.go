@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
+
 )
 
 type AuthRepository struct {
@@ -19,9 +20,13 @@ func NewAuthRepository(q *db.Queries) *AuthRepository {
 func (r *AuthRepository) CreateUser(
 	ctx context.Context,
 	params db.CreateUserParams,
-) error {
+) (*db.User,error) {
 
-	return r.queries.CreateUser(ctx, params)
+	 user,err := r.queries.CreateUser(ctx, params)
+	 if err != nil {
+		return nil,err
+	 }
+	 return &user,err
 }
 func (r *AuthRepository) GetUserByEmail(
 	ctx context.Context,
@@ -36,7 +41,7 @@ func (r *AuthRepository) GetUserByEmail(
 	return &user, nil
 }
 
-func (r *AuthRepository) GetUserByID(ctx context.Context, id pgtype.UUID) (*db.User, error) {
+func (r *AuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*db.User, error) {
 	user, err := r.queries.GetUserByID(ctx, id)
 	if err != nil {
 		return nil, err
