@@ -2,11 +2,11 @@ package auth
 
 import (
 	"context"
-	"fmt"
+	
 	"regexp"
 
-
 	"github.com/Mikhail-Tal63/Orbit/configs"
+	"github.com/Mikhail-Tal63/Orbit/internal/auth/errors"
 	"github.com/Mikhail-Tal63/Orbit/internal/auth/validator"
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/utils"
@@ -56,7 +56,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 		return nil, err
 	}
 	if existingEmail != nil {
-		return nil, fmt.Errorf("user with email %s already exists", email)
+		return nil, errors.ErrEmailAlreadyExists
 	}
 
 	existingUsername, err := s.authRepository.GetUserByUsername(ctx, username)
@@ -64,7 +64,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 		return nil, err
 	}
 	if existingUsername != nil {
-		return nil, fmt.Errorf("username %q is already taken", username)
+		return nil, errors.ErrUsernameTaken
 	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
