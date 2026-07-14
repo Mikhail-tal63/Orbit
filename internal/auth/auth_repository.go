@@ -26,16 +26,29 @@ func (r *AuthRepository) CreateUser(
 func (r *AuthRepository) GetUserByEmail(
 	ctx context.Context,
 	email string,
-) (db.User, error) {
+) (*db.User, error) {
 
-	return r.queries.GetUserByEmail(ctx, email)
-}
-
-func (r *AuthRepository) GetUserByID(ctx context.Context, id pgtype.UUID) (db.User, error) {
-	user, err := r.queries.GetUserByID(ctx, id)
+	user, err := r.queries.GetUserByEmail(ctx, email)
 	if err != nil {
-		return db.User{}, err
+		return nil, err
 	}
 
-	return user, nil
+	return &user, nil
+}
+
+func (r *AuthRepository) GetUserByID(ctx context.Context, id pgtype.UUID) (*db.User, error) {
+	user, err := r.queries.GetUserByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *AuthRepository) GetUserByUsername(ctx context.Context, username string) (*db.User, error) {
+	user, err := r.queries.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
