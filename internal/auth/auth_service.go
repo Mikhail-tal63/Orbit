@@ -4,9 +4,10 @@ import (
 	"context"
 	"fmt"
 	"regexp"
-	"strings"
+
 
 	"github.com/Mikhail-Tal63/Orbit/configs"
+	"github.com/Mikhail-Tal63/Orbit/internal/auth/validator"
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/utils"
 	"github.com/google/uuid"
@@ -26,34 +27,47 @@ func NewAuthService(authRepository AuthRepository) *AuthService {
 }
 
 func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*AuthResponce, error) {
+	username := validator.NormalizeUsername(user.Username)
+	email := validator.NormalizeEmail(user.Email)
+	name := validator.NormalizeName(user.FirstName)
 
-	username := strings.ToLower(strings.TrimSpace(user.Username))
-	if !usernameRe.MatchString(username) {
-		return nil, fmt.Errorf("username must be 3-20 chars, lowercase letters, numbers or underscore")
-	}
-
-	name := strings.TrimSpace(user.FirstName)
 	if name == "" {
 		name = username
 	}
-	email := strings.ToLower(strings.TrimSpace(user.Email))
-	existedEmail, err := s.authRepository.GetUserByEmail(ctx, email)
-	if err != nil {
+
+	if err := validator.ValidateUsername(username); err != nil {
 		return nil, err
-	}
-	if existedEmail != nil {
-		return nil, fmt.Errorf("user with %s already exists", user.Email)
 	}
 
-	existingByUsername, err := s.authRepository.GetUserByUsername(ctx, username)
+	if err := validator.ValidateEmail(email); err != nil {
+		return nil, err
+	}
+
+	if err := validator.ValidatePassword(user.Password); err != nil {
+		return nil, err
+	}
+
+	if err := validator.ValidateName(name); err != nil {
+		return nil, err
+	}
+
+	existingEmail, err := s.authRepository.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
-	if existingByUsername != nil {
+	if existingEmail != nil {
+		return nil, fmt.Errorf("user with email %s already exists", email)
+	}
+
+	existingUsername, err := s.authRepository.GetUserByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	if existingUsername != nil {
 		return nil, fmt.Errorf("username %q is already taken", username)
 	}
 
-	hashed, err := utils.HashPassword(user.Password)
+	hashedPassword, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -61,45 +75,48 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 	params := db.CreateUserParams{
 		ID:           uuid.New(),
 		FirstName:    name,
-		LastName:     user.LastName,
+		LastName:     validator.NormalizeName(user.LastName),
 		Username:     username,
 		Email:        email,
-		PasswordHash: hashed,
+		PasswordHash: hashedPassword,
 		ImageID:      pgtype.UUID{Valid: false},
 	}
 
-	createduser, err := s.authRepository.CreateUser(ctx, params)
+	createdUser, err := s.authRepository.CreateUser(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	var imageID *uuid.UUID
 
-	if createduser.ImageID.Valid {
-		id := uuid.UUID(createduser.ImageID.Bytes)
+	var imageID *uuid.UUID
+	if createdUser.ImageID.Valid {
+		id := uuid.UUID(createdUser.ImageID.Bytes)
 		imageID = &id
 	}
+
 	secret := []byte(configs.Load().JWTSecret)
-	token, err := utils.CreateJWT(secret, params.ID)
+
+	accessToken, err := utils.CreateJWT(secret, createdUser.ID)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := utils.GenerateRefreshToken(secret, params.ID)
+
+	refreshToken, err := utils.GenerateRefreshToken(secret, createdUser.ID)
 	if err != nil {
 		return nil, err
 	}
+
 	return &AuthResponce{
-		AccessToken:  token,
+		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		User: UserDTO{
-			FirstName: createduser.FirstName,
-			ID:        createduser.ID,
-			LastName:  createduser.LastName,
-			Username:  createduser.Username,
-			Email:     createduser.Email,
-			Phone:     createduser.Phone,
-			Role:      createduser.Role,
+			ID:        createdUser.ID,
+			FirstName: createdUser.FirstName,
+			LastName:  createdUser.LastName,
+			Username:  createdUser.Username,
+			Email:     createdUser.Email,
+			Phone:     createdUser.Phone,
+			Role:      createdUser.Role,
 			ImageID:   imageID,
 		},
 	}, nil
-
 }
