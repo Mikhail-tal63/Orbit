@@ -12,6 +12,7 @@ type User struct {
 	ID           pgtype.UUID      `json:"id"`
 	FirstName    string           `json:"first_name"`
 	LastName     string           `json:"last_name"`
+	Username     string           `json:"username"`
 	Email        string           `json:"email"`
 	PasswordHash string           `json:"password_hash"`
 	Phone        string           `json:"phone"`

@@ -16,6 +16,7 @@ INSERT INTO users (
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
@@ -28,7 +29,7 @@ INSERT INTO users (
 )
 VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, $11, $12
+    $7, $8, $9, $10, $11, $12, $13
 )
 `
 
@@ -36,6 +37,7 @@ type CreateUserParams struct {
 	ID           pgtype.UUID      `json:"id"`
 	FirstName    string           `json:"first_name"`
 	LastName     string           `json:"last_name"`
+	Username     string           `json:"username"`
 	Email        string           `json:"email"`
 	PasswordHash string           `json:"password_hash"`
 	Phone        string           `json:"phone"`
@@ -52,6 +54,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
 		arg.ID,
 		arg.FirstName,
 		arg.LastName,
+		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
 		arg.Phone,
@@ -70,6 +73,7 @@ SELECT
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
@@ -91,6 +95,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Phone,
@@ -109,6 +114,7 @@ SELECT
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
@@ -130,6 +136,49 @@ func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error)
 		&i.ID,
 		&i.FirstName,
 		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.ImageID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastLoginAt,
+	)
+	return i, err
+}
+
+const getUserByUsername = `-- name: GetUserByUsername :one
+
+SELECT 
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password_hash,
+    phone,
+    role,
+    image_id,
+    is_active,
+    created_at,
+    updated_at,
+    last_login_at
+    FROM users 
+    WHERE username = $1
+    LIMIT 1
+`
+
+func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByUsername, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.Phone,

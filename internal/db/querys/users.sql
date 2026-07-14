@@ -62,3 +62,25 @@ SELECT
 FROM users
 WHERE id = $1
 LIMIT 1;
+
+-- name: GetUserByUsername :one
+
+SELECT 
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password_hash,
+    phone,
+    role,
+    image_id,
+    is_active,
+    created_at,
+    updated_at,
+    last_login_at
+    FROM users 
+    WHERE username = $1
+    LIMIT 1;
+
+    
