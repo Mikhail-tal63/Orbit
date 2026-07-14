@@ -3,6 +3,7 @@ INSERT INTO users (
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
@@ -15,7 +16,7 @@ INSERT INTO users (
 )
 VALUES (
     $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, $11, $12
+    $7, $8, $9, $10, $11, $12, $13
 );
 
 -- name: GetUserByEmail :one
@@ -23,6 +24,7 @@ SELECT
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
@@ -47,6 +49,7 @@ SELECT
     id,
     first_name,
     last_name,
+    username,
     email,
     password_hash,
     phone,
