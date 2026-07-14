@@ -1,0 +1,15 @@
+-- +goose Up
+ALTER TABLE users
+    ALTER COLUMN phone SET DEFAULT '',
+    ALTER COLUMN role SET DEFAULT 'passenger',
+    ALTER COLUMN is_active SET DEFAULT TRUE,
+    ALTER COLUMN created_at SET DEFAULT NOW(),
+    ALTER COLUMN updated_at SET DEFAULT NOW();
+
+-- +goose Down
+ALTER TABLE users
+    ALTER COLUMN phone DROP DEFAULT,
+    ALTER COLUMN role DROP DEFAULT,
+    ALTER COLUMN is_active DROP DEFAULT,
+    ALTER COLUMN created_at DROP DEFAULT,
+    ALTER COLUMN updated_at DROP DEFAULT;

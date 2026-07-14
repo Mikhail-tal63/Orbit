@@ -8,10 +8,11 @@ package db
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createUser = `-- name: CreateUser :exec
+const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     id,
     first_name,
@@ -19,53 +20,57 @@ INSERT INTO users (
     username,
     email,
     password_hash,
-    phone,
-    role,
-    image_id,
-    is_active,
-    created_at,
-    updated_at,
-    last_login_at
+    image_id
 )
 VALUES (
-    $1, $2, $3, $4, $5, $6,
-    $7, $8, $9, $10, $11, $12, $13
+    $1,
+    $2,
+    $3,
+    $4,
+    $5,
+    $6,
+    $7
 )
+RETURNING id, first_name, last_name, username, email, password_hash, phone, role, image_id, is_active, created_at, updated_at, last_login_at
 `
 
 type CreateUserParams struct {
-	ID           pgtype.UUID      `json:"id"`
-	FirstName    string           `json:"first_name"`
-	LastName     string           `json:"last_name"`
-	Username     string           `json:"username"`
-	Email        string           `json:"email"`
-	PasswordHash string           `json:"password_hash"`
-	Phone        string           `json:"phone"`
-	Role         string           `json:"role"`
-	ImageID      pgtype.UUID      `json:"image_id"`
-	IsActive     bool             `json:"is_active"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
-	LastLoginAt  pgtype.Timestamp `json:"last_login_at"`
+	ID           uuid.UUID   `json:"id"`
+	FirstName    string      `json:"first_name"`
+	LastName     string      `json:"last_name"`
+	Username     string      `json:"username"`
+	Email        string      `json:"email"`
+	PasswordHash string      `json:"password_hash"`
+	ImageID      pgtype.UUID `json:"image_id"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
-	_, err := q.db.Exec(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
 		arg.ID,
 		arg.FirstName,
 		arg.LastName,
 		arg.Username,
 		arg.Email,
 		arg.PasswordHash,
-		arg.Phone,
-		arg.Role,
 		arg.ImageID,
-		arg.IsActive,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.LastLoginAt,
 	)
-	return err
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.ImageID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastLoginAt,
+	)
+	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
@@ -129,7 +134,7 @@ WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserByID(ctx context.Context, id pgtype.UUID) (User, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByID, id)
 	var i User
 	err := row.Scan(
@@ -199,7 +204,7 @@ WHERE id = $1
 `
 
 type UpdateLastLoginParams struct {
-	ID          pgtype.UUID      `json:"id"`
+	ID          uuid.UUID        `json:"id"`
 	LastLoginAt pgtype.Timestamp `json:"last_login_at"`
 }
 
