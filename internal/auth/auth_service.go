@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-
+	"time"
 )
 
 type AuthService struct{
@@ -15,8 +15,10 @@ return &AuthService{
 }
 }
 
-func (s *AuthService) CreateUser(ctx context.Context,payload *RegisterRequest) (error){
-	return nil
+func (s *AuthService) dCreateUser(ctx context.Context,payload *RegisterRequest) (*AuthResponce,error){
+
+now := time.Now()
+
 
 
 }
