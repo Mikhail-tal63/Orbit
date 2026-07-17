@@ -11,7 +11,7 @@ import (
 
 func CreateJWT(secret []byte, userID uuid.UUID) (string, error) {
 	expiration := time.Second * time.Duration(configs.Load().JWTexpiration)
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(expiration).Unix(),
 	})
