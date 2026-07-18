@@ -8,6 +8,7 @@ import (
 
 	"github.com/Mikhail-Tal63/Orbit/configs"
 	"github.com/Mikhail-Tal63/Orbit/utils"
+	"github.com/Mikhail-Tal63/Orbit/utils/jsonR"
 	"github.com/google/uuid"
 )
 
@@ -19,11 +20,11 @@ func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
-			utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("missing authorization header"))
+			jsonR.WriteError(w, http.StatusUnauthorized, fmt.Errorf("missing authorization header"))
 			return
 		}
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			utils.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid authorization format"))
+			jsonR.WriteError(w, http.StatusUnauthorized, fmt.Errorf("invalid authorization format"))
 			return
 		}
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
@@ -31,7 +32,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 		secret := []byte(configs.Load().JWTSecret)
 		userID, err := utils.VerifyJWT(secret, tokenString)
 		if err != nil {
-			utils.WriteError(w, http.StatusUnauthorized, err)
+			jsonR.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 
