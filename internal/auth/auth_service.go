@@ -147,17 +147,17 @@ func (s *AuthService) Login(ctx context.Context, email, hashedpasswor string) (*
 	return &AuthResponce{
 		RefreshToken: refreshTokend,
 		AccessToken:  token,
-		User:         mapUserToDTO(user),
+		User:         *mapUserToDTO(user),
 	}, nil
 }
-func mapUserToDTO(u *db.User) UserDTO {
+func mapUserToDTO(u *db.User) *UserDTO {
 	var imageID *uuid.UUID
 	if u != nil && u.ImageID.Valid {
 		id := uuid.UUID(u.ImageID.Bytes)
 		imageID = &id
 	}
 
-	return UserDTO{
+	return &UserDTO{
 		ID:        u.ID,
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
@@ -167,4 +167,12 @@ func mapUserToDTO(u *db.User) UserDTO {
 		Role:      u.Role,
 		ImageID:   imageID,
 	}
+}
+
+func (s *AuthService) GetUserByID(ctx context.Context, userID uuid.UUID) (*UserDTO,error){
+	user ,err := s.authRepository.GetUserByID(ctx,userID)
+	if err != nil{
+		return nil ,errors.ErrUserNotFound
+	}
+	return mapUserToDTO(user),nil
 }
