@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	
+
 	"regexp"
 
 	"github.com/Mikhail-Tal63/Orbit/configs"
@@ -119,4 +119,52 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 			ImageID:   imageID,
 		},
 	}, nil
+}
+
+func (s *AuthService) Login(ctx context.Context, email, hashedpasswor string) (*AuthResponce, error) {
+	user, err := s.authRepository.GetUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.ErrUserNotFound
+	}
+	if !utils.ComparePassword(user.PasswordHash, []byte(hashedpasswor)) {
+		return nil, errors.ErrInvalidCredentials
+	}
+
+	secret := []byte(configs.Load().JWTSecret)
+	token, err := utils.CreateJWT(secret, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshTokend, err := utils.GenerateRefreshToken(secret, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AuthResponce{
+		RefreshToken: refreshTokend,
+		AccessToken:  token,
+		User:         mapUserToDTO(user),
+	}, nil
+}
+func mapUserToDTO(u *db.User) UserDTO {
+	var imageID *uuid.UUID
+	if u != nil && u.ImageID.Valid {
+		id := uuid.UUID(u.ImageID.Bytes)
+		imageID = &id
+	}
+
+	return UserDTO{
+		ID:        u.ID,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+		Username:  u.Username,
+		Email:     u.Email,
+		Phone:     u.Phone,
+		Role:      u.Role,
+		ImageID:   imageID,
+	}
 }
