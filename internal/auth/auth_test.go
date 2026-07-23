@@ -153,7 +153,7 @@ func TestCreateUser_Success(t *testing.T) {
 
 
 
-	service := NewAuthService(repo)
+	service := NewAuthService(repo, []byte("test-secret"))
 
 
 
@@ -218,7 +218,7 @@ func TestCreateUser_EmailAlreadyExists(t *testing.T) {
 
 
 
-	service := NewAuthService(repo)
+	service := NewAuthService(repo, []byte("test-secret"))
 
 
 
@@ -266,7 +266,7 @@ func TestCreateUser_UsernameAlreadyExists(t *testing.T) {
 
 
 
-	service := NewAuthService(repo)
+	service := NewAuthService(repo, []byte("test-secret"))
 
 
 
@@ -335,7 +335,7 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 				repo := new(MockAuthRepository)
 
 
-				service := NewAuthService(repo)
+				service := NewAuthService(repo, []byte("test-secret"))
 
 
 				res, err := service.CreateUser(
@@ -377,7 +377,7 @@ func TestCreateUser_RepositoryError(t *testing.T) {
 
 
 
-	service := NewAuthService(repo)
+	service := NewAuthService(repo, []byte("test-secret"))
 
 
 

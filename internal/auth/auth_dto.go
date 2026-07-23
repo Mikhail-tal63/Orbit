@@ -15,18 +15,21 @@ type LoginRequest struct {
 	Password string `json:"password" validate:"required"`
 }
 type AuthResponce struct {
-	RefreshToken string `json:"refresh_token"`
-	AccessToken  string `json:"access_token"`
-	User         UserDTO   `json:"user"`
+	RefreshToken string  `json:"refresh_token"`
+	AccessToken  string  `json:"access_token"`
+	User         UserDTO `json:"user"`
 }
 
 type UserDTO struct {
-    ID        uuid.UUID `json:"id"`
-    FirstName string    `json:"first_name"`
-    LastName  string    `json:"last_name"`
-    Username  string    `json:"username"`
-    Email     string    `json:"email"`
-    Phone     string    `json:"phone"`
-    Role      string    `json:"role"`
-    ImageID   *uuid.UUID `json:"image_id,omitempty"`
+	ID        uuid.UUID  `json:"id"`
+	FirstName string     `json:"first_name"`
+	LastName  string     `json:"last_name"`
+	Username  string     `json:"username"`
+	Email     string     `json:"email"`
+	Phone     string     `json:"phone"`
+	Role      string     `json:"role"`
+	ImageID   *uuid.UUID `json:"image_id,omitempty"`
+}
+type GetUserByUsernamePayload struct {
+	Username string `json:"username"`
 }

@@ -18,6 +18,11 @@ func main() {
 	queries := db.New(pool)
 
 	authRepo := auth.NewAuthRepository(queries)
-	print(authRepo)
+
+authService := auth.NewAuthService(
+    authRepo,
+    []byte(cfg.JWTSecret),
+)
+print(authService)
 	fmt.Println("Orbit API starting...")
 }

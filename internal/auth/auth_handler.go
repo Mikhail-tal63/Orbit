@@ -3,49 +3,72 @@ package auth
 import (
 	"net/http"
 
-	
 	"github.com/Mikhail-Tal63/Orbit/utils/jsonR"
 	"github.com/gorilla/mux"
 )
 
-type AuthHandler struct{
+type AuthHandler struct {
 	service AuthService
 }
 
-func NewAuthHandler(service AuthService)*AuthHandler{
+func NewAuthHandler(service AuthService) *AuthHandler {
 	return &AuthHandler{
 		service: service,
 	}
 }
 
-func (h AuthHandler) AuthRouter(mux *mux.Router){
-	mux.HandleFunc("/regester",h.CreateUser).Methods("POST")
+func (h AuthHandler) AuthRouter(mux *mux.Router) {
+	mux.HandleFunc("/regester", h.CreateUser).Methods("POST")
 }
 func (h *AuthHandler) ProtectedRouter(router *mux.Router) {
 	//router.HandleFunc("/users/{username}", h.GetUserByUsername).Methods("GET")
 }
-func (h *AuthHandler) CreateUser(w http.ResponseWriter,r *http.Request){
+func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterRequest
-	if err := jsonR.ParseJSON(r,&payload); err != nil{
-		jsonR.WriteError(w,http.StatusInternalServerError,err)
+	if err := jsonR.ParseJSON(r, &payload); err != nil {
+		jsonR.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-    createuser,err:= h.service.CreateUser(r.Context(),&payload)
+	createuser, err := h.service.CreateUser(r.Context(), &payload)
 	if err != nil {
-		jsonR.WriteError(w,http.StatusInternalServerError,err)
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	if err := jsonR.WriteJSON(w,http.StatusOK,map[string]any{
-		"message":"user created seccessfuly",
-		"user": createuser,
-	});err != nil {
-			jsonR.WriteError(w,http.StatusInternalServerError,err)
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "user created seccessfuly",
+		"user":    createuser,
+	}); err != nil {
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
-	
 
 }
-func (h *AuthHandler) GetUserByUsername(){
-	
+
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var payload LoginRequest
+
+	if err := jsonR.ParseJSON(r, &payload); err != nil {
+		jsonR.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	user, err := h.service.Login(r.Context(), payload.Email, payload.Password)
+	if err != nil {
+		jsonR.WriteError(w, http.StatusForbidden, err)
+		return
+	}
+
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "login seccessed",
+		"user":    user,
+	}); err != nil {
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+}
+
+func (h *AuthHandler) GetUserByUsername() {
+
 }
