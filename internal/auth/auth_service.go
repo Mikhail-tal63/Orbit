@@ -5,7 +5,6 @@ import (
 
 	"regexp"
 
-	"github.com/Mikhail-Tal63/Orbit/configs"
 	"github.com/Mikhail-Tal63/Orbit/internal/auth/errors"
 	"github.com/Mikhail-Tal63/Orbit/internal/auth/validator"
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
@@ -17,13 +16,15 @@ import (
 var usernameRe = regexp.MustCompile(`^[a-z0-9_]{3,20}$`)
 
 type AuthService struct {
-	authRepository AuthRepository
+    authRepository AuthRepository
+    jwtSecret      []byte
 }
 
-func NewAuthService(authRepository AuthRepository) *AuthService {
-	return &AuthService{
-		authRepository: authRepository,
-	}
+func NewAuthService(repo AuthRepository, jwtSecret []byte) *AuthService {
+    return &AuthService{
+        authRepository: repo,
+        jwtSecret:      jwtSecret,
+    }
 }
 
 func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*AuthResponce, error) {
@@ -93,7 +94,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 		imageID = &id
 	}
 
-	secret := []byte(configs.Load().JWTSecret)
+	secret := []byte(s.jwtSecret)
 
 	accessToken, err := utils.CreateJWT(secret, createdUser.ID)
 	if err != nil {
@@ -133,7 +134,7 @@ func (s *AuthService) Login(ctx context.Context, email, hashedpasswor string) (*
 		return nil, errors.ErrInvalidCredentials
 	}
 
-	secret := []byte(configs.Load().JWTSecret)
+	secret := []byte(s.jwtSecret)
 	token, err := utils.CreateJWT(secret, user.ID)
 	if err != nil {
 		return nil, err
