@@ -6,21 +6,16 @@ import (
 	"testing"
 
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
+	"github.com/Mikhail-Tal63/Orbit/utils"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-
-// ==========================
-// Mock Repository
-// ==========================
-
 type MockAuthRepository struct {
 	mock.Mock
 }
-
 
 func (m *MockAuthRepository) GetUserByEmail(
 	ctx context.Context,
@@ -35,7 +30,6 @@ func (m *MockAuthRepository) GetUserByEmail(
 
 	return args.Get(0).(*db.User), args.Error(1)
 }
-
 
 func (m *MockAuthRepository) GetUserByUsername(
 	ctx context.Context,
@@ -65,7 +59,6 @@ func (m *MockAuthRepository) CreateUser(
 	return args.Get(0).(*db.User), args.Error(1)
 }
 
-
 func (m *MockAuthRepository) GetUserByID(
 	ctx context.Context,
 	id uuid.UUID,
@@ -80,7 +73,6 @@ func (m *MockAuthRepository) GetUserByID(
 	return args.Get(0).(*db.User), args.Error(1)
 }
 
-
 func validRegisterRequest() *RegisterRequest {
 
 	return &RegisterRequest{
@@ -91,7 +83,6 @@ func validRegisterRequest() *RegisterRequest {
 		Password:  "password123",
 	}
 }
-
 
 func fakeUser() db.User {
 
@@ -115,15 +106,11 @@ func fakeUser() db.User {
 	}
 }
 
-
 func TestCreateUser_Success(t *testing.T) {
-
 
 	repo := new(MockAuthRepository)
 
-
 	user := fakeUser()
-
 
 	repo.
 		On(
@@ -133,7 +120,6 @@ func TestCreateUser_Success(t *testing.T) {
 		).
 		Return(nil, nil)
 
-
 	repo.
 		On(
 			"GetUserByUsername",
@@ -141,7 +127,6 @@ func TestCreateUser_Success(t *testing.T) {
 			"jehad",
 		).
 		Return(nil, nil)
-
 
 	repo.
 		On(
@@ -151,35 +136,26 @@ func TestCreateUser_Success(t *testing.T) {
 		).
 		Return(&user, nil)
 
-
-
 	service := NewAuthService(repo, []byte("test-secret"))
-
-
 
 	res, err := service.CreateUser(
 		context.Background(),
 		validRegisterRequest(),
 	)
 
-
-
 	require.NoError(t, err)
 
 	require.NotNil(t, res)
-
 
 	require.NotEmpty(
 		t,
 		res.AccessToken,
 	)
 
-
 	require.NotEmpty(
 		t,
 		res.RefreshToken,
 	)
-
 
 	require.Equal(
 		t,
@@ -187,26 +163,19 @@ func TestCreateUser_Success(t *testing.T) {
 		res.User.Username,
 	)
 
-
 	require.Equal(
 		t,
 		"jehad@test.com",
 		res.User.Email,
 	)
 
-
 	repo.AssertExpectations(t)
 
 }
 
-
-
-
 func TestCreateUser_EmailAlreadyExists(t *testing.T) {
 
-
 	repo := new(MockAuthRepository)
-
 
 	repo.
 		On(
@@ -216,36 +185,24 @@ func TestCreateUser_EmailAlreadyExists(t *testing.T) {
 		).
 		Return(&db.User{}, nil)
 
-
-
 	service := NewAuthService(repo, []byte("test-secret"))
-
-
 
 	res, err := service.CreateUser(
 		context.Background(),
 		validRegisterRequest(),
 	)
 
-
-
 	require.Error(t, err)
 
 	require.Nil(t, res)
-
 
 	repo.AssertExpectations(t)
 
 }
 
-
-
-
 func TestCreateUser_UsernameAlreadyExists(t *testing.T) {
 
-
 	repo := new(MockAuthRepository)
-
 
 	repo.
 		On(
@@ -255,7 +212,6 @@ func TestCreateUser_UsernameAlreadyExists(t *testing.T) {
 		).
 		Return(nil, nil)
 
-
 	repo.
 		On(
 			"GetUserByUsername",
@@ -264,33 +220,22 @@ func TestCreateUser_UsernameAlreadyExists(t *testing.T) {
 		).
 		Return(&db.User{}, nil)
 
-
-
 	service := NewAuthService(repo, []byte("test-secret"))
-
-
 
 	res, err := service.CreateUser(
 		context.Background(),
 		validRegisterRequest(),
 	)
 
-
-
 	require.Error(t, err)
 
 	require.Nil(t, res)
-
 
 	repo.AssertExpectations(t)
 
 }
 
-
-
-
 func TestCreateUser_InvalidInput(t *testing.T) {
-
 
 	tests := []struct {
 		name string
@@ -300,7 +245,7 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 			name: "invalid username",
 			user: &RegisterRequest{
 				Username: "!!",
-				Email: "test@test.com",
+				Email:    "test@test.com",
 				Password: "password123",
 			},
 		},
@@ -309,7 +254,7 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 			name: "invalid email",
 			user: &RegisterRequest{
 				Username: "jehad",
-				Email: "wrong",
+				Email:    "wrong",
 				Password: "password123",
 			},
 		},
@@ -318,31 +263,26 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 			name: "weak password",
 			user: &RegisterRequest{
 				Username: "jehad",
-				Email: "test@test.com",
+				Email:    "test@test.com",
 				Password: "1",
 			},
 		},
 	}
 
-
 	for _, tt := range tests {
-
 
 		t.Run(
 			tt.name,
-			func(t *testing.T){
+			func(t *testing.T) {
 
 				repo := new(MockAuthRepository)
 
-
 				service := NewAuthService(repo, []byte("test-secret"))
-
 
 				res, err := service.CreateUser(
 					context.Background(),
 					tt.user,
 				)
-
 
 				require.Error(t, err)
 
@@ -353,19 +293,11 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 	}
 }
 
-
-
-
 func TestCreateUser_RepositoryError(t *testing.T) {
-
 
 	repo := new(MockAuthRepository)
 
-
-
 	dbError := errors.New("database error")
-
-
 
 	repo.
 		On(
@@ -375,23 +307,16 @@ func TestCreateUser_RepositoryError(t *testing.T) {
 		).
 		Return(nil, dbError)
 
-
-
 	service := NewAuthService(repo, []byte("test-secret"))
-
-
 
 	res, err := service.CreateUser(
 		context.Background(),
 		validRegisterRequest(),
 	)
 
-
-
 	require.Error(t, err)
 
 	require.Nil(t, res)
-
 
 	require.ErrorIs(
 		t,
@@ -399,7 +324,110 @@ func TestCreateUser_RepositoryError(t *testing.T) {
 		dbError,
 	)
 
-
 	repo.AssertExpectations(t)
 
+}
+
+//Login tests ******************************************************************************************
+
+func fakeLoginUser() db.User {
+	hashedPassword, _ := utils.HashPassword("password123")
+	return db.User{
+		ID: uuid.New(),
+
+		FirstName: "Jehad",
+		LastName:  "Mohamed",
+
+		Username: "jehad",
+
+		Email: "jehad@test.com",
+
+		Role: "passenger",
+
+		PasswordHash: hashedPassword,
+	}
+}
+
+func TestLogin_Success(t *testing.T) {
+
+	repo := new(MockAuthRepository)
+
+	user := fakeLoginUser()
+
+	repo.
+		On(
+			"GetUserByEmail",
+			mock.Anything,
+			"jehad@test.com",
+		).
+		Return(&user, nil)
+
+	service := NewAuthService(
+		repo,
+		[]byte("test-secret"),
+	)
+
+	res, err := service.Login(
+		context.Background(),
+		"jehad@test.com",
+		"password123",
+	)
+
+	require.NoError(t, err)
+
+	require.NotNil(t, res)
+
+	require.NotEmpty(
+		t,
+		res.AccessToken,
+	)
+
+	require.NotEmpty(
+		t,
+		res.RefreshToken,
+	)
+
+	require.Equal(
+		t,
+		"jehad",
+		res.User.Username,
+	)
+
+	repo.AssertExpectations(t)
+}
+
+func TestLogin_UserNotFound(t *testing.T) {
+
+	repo := new(MockAuthRepository)
+
+	repo.
+		On(
+			"GetUserByEmail",
+			mock.Anything,
+			"jehad@test.com",
+		).
+		Return(nil, nil)
+
+	service := NewAuthService(
+		repo,
+		[]byte("test-secret"),
+	)
+
+	res, err := service.Login(
+		context.Background(),
+		"jehad@test.com",
+		"password123",
+	)
+
+	require.Error(t, err)
+
+	require.Nil(t, res)
+
+	require.ErrorIs(
+		t,
+		err,
+		ErrUserNotFound,
+	)
+
+	repo.AssertExpectations(t)
 }

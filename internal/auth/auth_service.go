@@ -5,7 +5,6 @@ import (
 
 	"regexp"
 
-	"github.com/Mikhail-Tal63/Orbit/internal/auth/errors"
 	"github.com/Mikhail-Tal63/Orbit/internal/auth/validator"
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/utils"
@@ -57,7 +56,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 		return nil, err
 	}
 	if existingEmail != nil {
-		return nil, errors.ErrEmailAlreadyExists
+		return nil, ErrEmailAlreadyExists
 	}
 
 	existingUsername, err := s.authRepository.GetUserByUsername(ctx, username)
@@ -65,7 +64,7 @@ func (s *AuthService) CreateUser(ctx context.Context, user *RegisterRequest) (*A
 		return nil, err
 	}
 	if existingUsername != nil {
-		return nil, errors.ErrUsernameTaken
+		return nil, ErrUsernameTaken
 	}
 
 	hashedPassword, err := utils.HashPassword(user.Password)
@@ -128,10 +127,10 @@ func (s *AuthService) Login(ctx context.Context, email, hashedpasswor string) (*
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.ErrUserNotFound
+		return nil, ErrUserNotFound
 	}
 	if !utils.ComparePassword(user.PasswordHash, []byte(hashedpasswor)) {
-		return nil, errors.ErrInvalidCredentials
+		return nil, ErrInvalidCredentials
 	}
 
 	secret := []byte(s.jwtSecret)
@@ -173,7 +172,7 @@ func mapUserToDTO(u *db.User) *UserDTO {
 func (s *AuthService) GetUserByID(ctx context.Context, userID uuid.UUID) (*UserDTO,error){
 	user ,err := s.authRepository.GetUserByID(ctx,userID)
 	if err != nil{
-		return nil ,errors.ErrUserNotFound
+		return nil, ErrUserNotFound
 	}
 	return mapUserToDTO(user),nil
 }
