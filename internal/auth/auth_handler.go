@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/Mikhail-Tal63/Orbit/utils/httperror"
 	"github.com/Mikhail-Tal63/Orbit/utils/jsonR"
 	"github.com/gorilla/mux"
 )
@@ -25,48 +26,52 @@ func (h *AuthHandler) ProtectedRouter(router *mux.Router) {
 }
 func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterRequest
+
 	if err := jsonR.ParseJSON(r, &payload); err != nil {
-		jsonR.WriteError(w, http.StatusBadRequest, err)
+		httperror.Handle(w, err)
 		return
 	}
 
-	createuser, err := h.service.CreateUser(r.Context(), &payload)
+	createUser, err := h.service.CreateUser(r.Context(), &payload)
 	if err != nil {
-		jsonR.WriteError(w, http.StatusInternalServerError, err)
-		return
-	}
-	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
-		"message": "user created seccessfuly",
-		"user":    createuser,
-	}); err != nil {
-		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		httperror.Handle(w, err)
 		return
 	}
 
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "user created successfully",
+		"user":    createUser,
+	}); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var payload LoginRequest
 
 	if err := jsonR.ParseJSON(r, &payload); err != nil {
-		jsonR.WriteError(w, http.StatusBadRequest, err)
+		httperror.Handle(w, err)
 		return
 	}
 
-	user, err := h.service.Login(r.Context(), payload.Email, payload.Password)
+	authResponse, err := h.service.Login(
+		r.Context(),
+		payload.Email,
+		payload.Password,
+	)
 	if err != nil {
-		jsonR.WriteError(w, http.StatusForbidden, err)
+		httperror.Handle(w, err)
 		return
 	}
 
 	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
-		"message": "login seccessed",
-		"user":    user,
+		"message": "login succeeded",
+		"data":    authResponse,
 	}); err != nil {
-		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		httperror.Handle(w, err)
 		return
 	}
-
 }
 
 func (h *AuthHandler) GetUserByUsername() {
