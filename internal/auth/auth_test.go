@@ -6,75 +6,83 @@ import (
 	"testing"
 
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
-	"github.com/Mikhail-Tal63/Orbit/utils"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-type MockAuthRepository struct {
-	mock.Mock
+
+type FakeAuthRepository struct {
+	usersByEmail    map[string]*db.User
+	usersByUsername map[string]*db.User
+	usersByID       map[uuid.UUID]*db.User
+	errToReturn     error
 }
 
-func (m *MockAuthRepository) GetUserByEmail(
-	ctx context.Context,
-	email string,
-) (*db.User, error) {
-
-	args := m.Called(ctx, email)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+func NewFakeAuthRepository() *FakeAuthRepository {
+	return &FakeAuthRepository{
+		usersByEmail:    make(map[string]*db.User),
+		usersByUsername: make(map[string]*db.User),
+		usersByID:       make(map[uuid.UUID]*db.User),
 	}
-
-	return args.Get(0).(*db.User), args.Error(1)
 }
 
-func (m *MockAuthRepository) GetUserByUsername(
-	ctx context.Context,
-	username string,
-) (*db.User, error) {
-
-	args := m.Called(ctx, username)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+func (f *FakeAuthRepository) CreateUser(ctx context.Context, params db.CreateUserParams) (*db.User, error) {
+	if f.errToReturn != nil {
+		return nil, f.errToReturn
 	}
 
-	return args.Get(0).(*db.User), args.Error(1)
+	user := &db.User{
+		ID:           params.ID,
+		FirstName:    params.FirstName,
+		LastName:     params.LastName,
+		Username:     params.Username,
+		Email:        params.Email,
+		PasswordHash: params.PasswordHash,
+		ImageID:      params.ImageID,
+		Role:         "passenger",
+	}
+
+	f.usersByEmail[params.Email] = user
+	f.usersByUsername[params.Username] = user
+	f.usersByID[params.ID] = user
+
+	return user, nil
 }
 
-func (m *MockAuthRepository) CreateUser(
-	ctx context.Context,
-	params db.CreateUserParams,
-) (*db.User, error) {
-
-	args := m.Called(ctx, params)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+func (f *FakeAuthRepository) GetUserByEmail(ctx context.Context, email string) (*db.User, error) {
+	if f.errToReturn != nil {
+		return nil, f.errToReturn
 	}
-
-	return args.Get(0).(*db.User), args.Error(1)
+	user, exists := f.usersByEmail[email]
+	if !exists {
+		return nil, nil
+	}
+	return user, nil
 }
 
-func (m *MockAuthRepository) GetUserByID(
-	ctx context.Context,
-	id uuid.UUID,
-) (*db.User, error) {
-
-	args := m.Called(ctx, id)
-
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
+func (f *FakeAuthRepository) GetUserByUsername(ctx context.Context, username string) (*db.User, error) {
+	if f.errToReturn != nil {
+		return nil, f.errToReturn
 	}
+	user, exists := f.usersByUsername[username]
+	if !exists {
+		return nil, nil
+	}
+	return user, nil
+}
 
-	return args.Get(0).(*db.User), args.Error(1)
+func (f *FakeAuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*db.User, error) {
+	if f.errToReturn != nil {
+		return nil, f.errToReturn
+	}
+	user, exists := f.usersByID[id]
+	if !exists {
+		return nil, nil
+	}
+	return user, nil
 }
 
 func validRegisterRequest() *RegisterRequest {
-
 	return &RegisterRequest{
 		FirstName: "Jehad",
 		LastName:  "Mohamed",
@@ -84,159 +92,54 @@ func validRegisterRequest() *RegisterRequest {
 	}
 }
 
-func fakeUser() db.User {
-
-	return db.User{
-		ID: uuid.New(),
-
-		FirstName: "Jehad",
-		LastName:  "Mohamed",
-
-		Username: "jehad",
-
-		Email: "jehad@test.com",
-
-		Phone: "",
-
-		Role: "passenger",
-
-		ImageID: pgtype.UUID{
-			Valid: false,
-		},
-	}
-}
+// CreateUser Tests ***********************************************************************************
 
 func TestCreateUser_Success(t *testing.T) {
-
-	repo := new(MockAuthRepository)
-
-	user := fakeUser()
-
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(nil, nil)
-
-	repo.
-		On(
-			"GetUserByUsername",
-			mock.Anything,
-			"jehad",
-		).
-		Return(nil, nil)
-
-	repo.
-		On(
-			"CreateUser",
-			mock.Anything,
-			mock.Anything,
-		).
-		Return(&user, nil)
-
+	repo := NewFakeAuthRepository()
 	service := NewAuthService(repo, []byte("test-secret"))
 
-	res, err := service.CreateUser(
-		context.Background(),
-		validRegisterRequest(),
-	)
+	res, err := service.CreateUser(context.Background(), validRegisterRequest())
 
 	require.NoError(t, err)
-
 	require.NotNil(t, res)
-
-	require.NotEmpty(
-		t,
-		res.AccessToken,
-	)
-
-	require.NotEmpty(
-		t,
-		res.RefreshToken,
-	)
-
-	require.Equal(
-		t,
-		"jehad",
-		res.User.Username,
-	)
-
-	require.Equal(
-		t,
-		"jehad@test.com",
-		res.User.Email,
-	)
-
-	repo.AssertExpectations(t)
-
+	require.NotEmpty(t, res.AccessToken)
+	require.NotEmpty(t, res.RefreshToken)
+	require.Equal(t, "jehad", res.User.Username)
+	require.Equal(t, "jehad@test.com", res.User.Email)
 }
 
 func TestCreateUser_EmailAlreadyExists(t *testing.T) {
-
-	repo := new(MockAuthRepository)
-
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(&db.User{}, nil)
-
+	repo := NewFakeAuthRepository()
 	service := NewAuthService(repo, []byte("test-secret"))
 
-	res, err := service.CreateUser(
-		context.Background(),
-		validRegisterRequest(),
-	)
 
-	require.Error(t, err)
+	_, err := service.CreateUser(context.Background(), validRegisterRequest())
+	require.NoError(t, err)
 
+	
+	res, err := service.CreateUser(context.Background(), validRegisterRequest())
+
+	require.ErrorIs(t, err, ErrEmailAlreadyExists)
 	require.Nil(t, res)
-
-	repo.AssertExpectations(t)
-
 }
 
 func TestCreateUser_UsernameAlreadyExists(t *testing.T) {
-
-	repo := new(MockAuthRepository)
-
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(nil, nil)
-
-	repo.
-		On(
-			"GetUserByUsername",
-			mock.Anything,
-			"jehad",
-		).
-		Return(&db.User{}, nil)
-
+	repo := NewFakeAuthRepository()
 	service := NewAuthService(repo, []byte("test-secret"))
 
-	res, err := service.CreateUser(
-		context.Background(),
-		validRegisterRequest(),
-	)
 
-	require.Error(t, err)
+	_, err := service.CreateUser(context.Background(), validRegisterRequest())
+	require.NoError(t, err)
 
+	req := validRegisterRequest()
+	req.Email = "another@test.com"
+	res, err := service.CreateUser(context.Background(), req)
+
+	require.ErrorIs(t, err, ErrUsernameTaken)
 	require.Nil(t, res)
-
-	repo.AssertExpectations(t)
-
 }
 
 func TestCreateUser_InvalidInput(t *testing.T) {
-
 	tests := []struct {
 		name string
 		user *RegisterRequest
@@ -249,7 +152,6 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 				Password: "password123",
 			},
 		},
-
 		{
 			name: "invalid email",
 			user: &RegisterRequest{
@@ -258,7 +160,6 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 				Password: "password123",
 			},
 		},
-
 		{
 			name: "weak password",
 			user: &RegisterRequest{
@@ -270,164 +171,72 @@ func TestCreateUser_InvalidInput(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := NewFakeAuthRepository()
+			service := NewAuthService(repo, []byte("test-secret"))
 
-		t.Run(
-			tt.name,
-			func(t *testing.T) {
+			res, err := service.CreateUser(context.Background(), tt.user)
 
-				repo := new(MockAuthRepository)
-
-				service := NewAuthService(repo, []byte("test-secret"))
-
-				res, err := service.CreateUser(
-					context.Background(),
-					tt.user,
-				)
-
-				require.Error(t, err)
-
-				require.Nil(t, res)
-
-			},
-		)
+			require.Error(t, err)
+			require.Nil(t, res)
+		})
 	}
 }
 
 func TestCreateUser_RepositoryError(t *testing.T) {
-
-	repo := new(MockAuthRepository)
-
 	dbError := errors.New("database error")
 
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(nil, dbError)
+	repo := NewFakeAuthRepository()
+	repo.errToReturn = dbError
 
 	service := NewAuthService(repo, []byte("test-secret"))
 
-	res, err := service.CreateUser(
-		context.Background(),
-		validRegisterRequest(),
-	)
+	res, err := service.CreateUser(context.Background(), validRegisterRequest())
 
-	require.Error(t, err)
-
+	require.ErrorIs(t, err, dbError)
 	require.Nil(t, res)
-
-	require.ErrorIs(
-		t,
-		err,
-		dbError,
-	)
-
-	repo.AssertExpectations(t)
-
 }
 
-//Login tests ******************************************************************************************
-
-func fakeLoginUser() db.User {
-	hashedPassword, _ := utils.HashPassword("password123")
-	return db.User{
-		ID: uuid.New(),
-
-		FirstName: "Jehad",
-		LastName:  "Mohamed",
-
-		Username: "jehad",
-
-		Email: "jehad@test.com",
-
-		Role: "passenger",
-
-		PasswordHash: hashedPassword,
-	}
-}
+// Login Tests *****************************************************************************************
 
 func TestLogin_Success(t *testing.T) {
+	repo := NewFakeAuthRepository()
+	service := NewAuthService(repo, []byte("test-secret"))
 
-	repo := new(MockAuthRepository)
 
-	user := fakeLoginUser()
-
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(&user, nil)
-
-	service := NewAuthService(
-		repo,
-		[]byte("test-secret"),
-	)
-
-	res, err := service.Login(
-		context.Background(),
-		"jehad@test.com",
-		"password123",
-	)
-
+	_, err := service.CreateUser(context.Background(), validRegisterRequest())
 	require.NoError(t, err)
 
+	
+	res, err := service.Login(context.Background(), "jehad@test.com", "password123")
+
+	require.NoError(t, err)
 	require.NotNil(t, res)
-
-	require.NotEmpty(
-		t,
-		res.AccessToken,
-	)
-
-	require.NotEmpty(
-		t,
-		res.RefreshToken,
-	)
-
-	require.Equal(
-		t,
-		"jehad",
-		res.User.Username,
-	)
-
-	repo.AssertExpectations(t)
+	require.NotEmpty(t, res.AccessToken)
+	require.NotEmpty(t, res.RefreshToken)
+	require.Equal(t, "jehad", res.User.Username)
 }
 
 func TestLogin_UserNotFound(t *testing.T) {
+	repo := NewFakeAuthRepository()
+	service := NewAuthService(repo, []byte("test-secret"))
 
-	repo := new(MockAuthRepository)
+	res, err := service.Login(context.Background(), "nonexistent@test.com", "password123")
 
-	repo.
-		On(
-			"GetUserByEmail",
-			mock.Anything,
-			"jehad@test.com",
-		).
-		Return(nil, nil)
-
-	service := NewAuthService(
-		repo,
-		[]byte("test-secret"),
-	)
-
-	res, err := service.Login(
-		context.Background(),
-		"jehad@test.com",
-		"password123",
-	)
-
-	require.Error(t, err)
-
+	require.ErrorIs(t, err, ErrUserNotFound)
 	require.Nil(t, res)
+}
 
-	require.ErrorIs(
-		t,
-		err,
-		ErrUserNotFound,
-	)
+func TestLogin_InvalidCredentials(t *testing.T) {
+	repo := NewFakeAuthRepository()
+	service := NewAuthService(repo, []byte("test-secret"))
 
-	repo.AssertExpectations(t)
+
+	_, err := service.CreateUser(context.Background(), validRegisterRequest())
+	require.NoError(t, err)
+
+	res, err := service.Login(context.Background(), "jehad@test.com", "wrongpassword")
+
+	require.ErrorIs(t, err, ErrInvalidCredentials)
+	require.Nil(t, res)
 }
