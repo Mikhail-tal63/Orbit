@@ -8,24 +8,20 @@ import (
 )
 
 type AuthRepository interface {
-
 	CreateUser(
 		ctx context.Context,
 		params db.CreateUserParams,
 	) (*db.User, error)
-
 
 	GetUserByEmail(
 		ctx context.Context,
 		email string,
 	) (*db.User, error)
 
-
 	GetUserByUsername(
 		ctx context.Context,
 		username string,
 	) (*db.User, error)
-
 
 	GetUserByID(
 		ctx context.Context,
@@ -33,14 +29,11 @@ type AuthRepository interface {
 	) (*db.User, error)
 }
 
-
 type AuthRepositoryImpl struct {
 	queries *db.Queries
 }
 
 var _ AuthRepository = (*AuthRepositoryImpl)(nil)
-
-
 
 func NewAuthRepository(q *db.Queries) *AuthRepositoryImpl {
 
@@ -48,7 +41,6 @@ func NewAuthRepository(q *db.Queries) *AuthRepositoryImpl {
 		queries: q,
 	}
 }
-
 
 func (r *AuthRepositoryImpl) CreateUser(
 	ctx context.Context,
@@ -78,8 +70,6 @@ func (r *AuthRepositoryImpl) GetUserByEmail(
 	return &user, nil
 }
 
-
-
 func (r *AuthRepositoryImpl) GetUserByUsername(
 	ctx context.Context,
 	username string,
@@ -93,8 +83,6 @@ func (r *AuthRepositoryImpl) GetUserByUsername(
 
 	return &user, nil
 }
-
-
 
 func (r *AuthRepositoryImpl) GetUserByID(
 	ctx context.Context,
