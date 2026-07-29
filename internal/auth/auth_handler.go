@@ -3,6 +3,7 @@ package auth
 import (
 	"net/http"
 
+	"github.com/Mikhail-Tal63/Orbit/middleware"
 	"github.com/Mikhail-Tal63/Orbit/utils/httperror"
 	"github.com/Mikhail-Tal63/Orbit/utils/jsonR"
 	"github.com/gorilla/mux"
@@ -74,6 +75,21 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *AuthHandler) GetUserByUsername() {
-
+func (h *AuthHandler) GetUserByID(w http.ResponseWriter,r *http.Request) {
+userID,err:= middleware.GetUserID(r.Context())
+if err != nil {
+	httperror.Handle(w,err)
+	return
+}
+user,err:= h.service.GetUserByID(r.Context(),userID)
+if err != nil {
+	httperror.Handle(w,err)
+	return
+}
+if err:= jsonR.WriteJSON(w,http.StatusOK,map[string]any{
+	"user":user,
+});err!= nil {
+	httperror.Handle(w,err)
+	return
+}
 }
