@@ -21,6 +21,7 @@ func NewAuthHandler(service AuthService) *AuthHandler {
 
 func (h AuthHandler) AuthRouter(mux *mux.Router) {
 	mux.HandleFunc("/regester", h.CreateUser).Methods("POST")
+	mux.HandleFunc("/profile/{id}",h.GetUserByID).Methods("GET")
 }
 func (h *AuthHandler) ProtectedRouter(router *mux.Router) {
 	//router.HandleFunc("/users/{username}", h.GetUserByUsername).Methods("GET")
