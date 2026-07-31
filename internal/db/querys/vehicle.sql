@@ -1,4 +1,4 @@
--- name CreateVehicle : one
+-- name: CreateVehicle :one
 
 INSERT INTO vehicles (
     id,
