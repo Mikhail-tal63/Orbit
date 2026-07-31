@@ -97,3 +97,11 @@ func (r *AuthRepositoryImpl) GetUserByID(
 
 	return &user, nil
 }
+
+func (r *AuthRepositoryImpl) UpdateUserRole(ctx context.Context, params db.UpdateUserRoleParams) (*db.User, error) {
+	user, err := r.queries.UpdateUserRole(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return &user, err
+}

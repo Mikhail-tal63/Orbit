@@ -83,4 +83,24 @@ SELECT
     WHERE username = $1
     LIMIT 1;
 
-    
+-- name: UpdateUserRole :one
+
+UPDATE users
+SET 
+    role = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password_hash,
+    phone,
+    role,
+    image_id,
+    is_active,
+    created_at,
+    updated_at,
+    last_login_at;

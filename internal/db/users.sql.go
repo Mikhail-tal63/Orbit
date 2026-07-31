@@ -212,3 +212,52 @@ func (q *Queries) UpdateLastLogin(ctx context.Context, arg UpdateLastLoginParams
 	_, err := q.db.Exec(ctx, updateLastLogin, arg.ID, arg.LastLoginAt)
 	return err
 }
+
+const updateUserRole = `-- name: UpdateUserRole :one
+
+UPDATE users
+SET 
+    role = $2,
+    updated_at = NOW()
+WHERE id = $1
+RETURNING
+    id,
+    first_name,
+    last_name,
+    username,
+    email,
+    password_hash,
+    phone,
+    role,
+    image_id,
+    is_active,
+    created_at,
+    updated_at,
+    last_login_at
+`
+
+type UpdateUserRoleParams struct {
+	ID   uuid.UUID `json:"id"`
+	Role string    `json:"role"`
+}
+
+func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserRole, arg.ID, arg.Role)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Username,
+		&i.Email,
+		&i.PasswordHash,
+		&i.Phone,
+		&i.Role,
+		&i.ImageID,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.LastLoginAt,
+	)
+	return i, err
+}

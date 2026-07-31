@@ -18,6 +18,7 @@ type Querier interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	UpdateLastLogin(ctx context.Context, arg UpdateLastLoginParams) error
+	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)
