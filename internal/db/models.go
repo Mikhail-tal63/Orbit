@@ -9,6 +9,19 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Driver struct {
+	ID               uuid.UUID        `json:"id"`
+	UserID           uuid.UUID        `json:"user_id"`
+	IsOnline         bool             `json:"is_online"`
+	IsAvailable      bool             `json:"is_available"`
+	CurrentLatitude  pgtype.Numeric   `json:"current_latitude"`
+	CurrentLongitude pgtype.Numeric   `json:"current_longitude"`
+	Rating           pgtype.Numeric   `json:"rating"`
+	CompletedRides   pgtype.Int4      `json:"completed_rides"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
+}
+
 type User struct {
 	ID           uuid.UUID        `json:"id"`
 	FirstName    string           `json:"first_name"`
@@ -23,4 +36,17 @@ type User struct {
 	CreatedAt    pgtype.Timestamp `json:"created_at"`
 	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
 	LastLoginAt  pgtype.Timestamp `json:"last_login_at"`
+}
+
+type Vehicle struct {
+	ID          uuid.UUID        `json:"id"`
+	DriverID    uuid.UUID        `json:"driver_id"`
+	Make        string           `json:"make"`
+	Model       string           `json:"model"`
+	Year        pgtype.Int4      `json:"year"`
+	Color       pgtype.Text      `json:"color"`
+	PlateNumber string           `json:"plate_number"`
+	ImageFileID pgtype.UUID      `json:"image_file_id"`
+	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	UpdatedAt   pgtype.Timestamp `json:"updated_at"`
 }
