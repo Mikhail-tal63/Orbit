@@ -20,7 +20,7 @@ type DriverDTO struct {
 type CreateDriverRequest struct {
 	ID   uuid.UUID `json:"id"`
 	Role string    `json:"role"`
-		Make        string `json:"make"`
+	Make        string `json:"make"`
 	Model       string `json:"model"`
 	Year        pgtype.Int4  `json:"year"`
 	Color       pgtype.Text `json:"color"`

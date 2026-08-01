@@ -1,5 +1,7 @@
 package vehicle
 
+import "github.com/jackc/pgx/v5/pgtype"
+
 type VehicleDTO struct {
 	ID          string `json:"id"`
 	Make        string `json:"make"`
@@ -14,7 +16,8 @@ type VehicleDTO struct {
 type CreatVechileRequest struct {
 	Make        string `json:"make"`
 	Model       string `json:"model"`
-	Year        int32  `json:"year"`
-	Color       string `json:"color"`
+	Year        pgtype.Int4  `json:"year"`
+	Color       pgtype.Text `json:"color"`
 	PlateNumber string `json:"plate_number"`
+
 }
