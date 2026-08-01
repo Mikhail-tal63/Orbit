@@ -27,6 +27,7 @@ type AuthRepository interface {
 		ctx context.Context,
 		id uuid.UUID,
 	) (*db.User, error)
+	UpdateUserRole(ctx context.Context, params db.UpdateUserRoleParams) (*db.User, error)
 }
 
 type AuthRepositoryImpl struct {
