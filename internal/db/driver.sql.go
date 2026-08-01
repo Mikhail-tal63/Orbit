@@ -45,3 +45,25 @@ func (q *Queries) CreateDriver(ctx context.Context, arg CreateDriverParams) (Dri
 	)
 	return i, err
 }
+
+const getDriverByUserId = `-- name: GetDriverByUserId :one
+SELECT id, user_id, is_online, is_available, current_latitude, current_longitude, rating, completed_rides, created_at, updated_at FROM drivers WHERE user_id = $1
+`
+
+func (q *Queries) GetDriverByUserId(ctx context.Context, userID uuid.UUID) (Driver, error) {
+	row := q.db.QueryRow(ctx, getDriverByUserId, userID)
+	var i Driver
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.IsOnline,
+		&i.IsAvailable,
+		&i.CurrentLatitude,
+		&i.CurrentLongitude,
+		&i.Rating,
+		&i.CompletedRides,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

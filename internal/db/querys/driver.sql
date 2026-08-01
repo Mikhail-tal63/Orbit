@@ -8,3 +8,7 @@ VALUES(
     $2
 )
 RETURNING *;
+
+-- name: GetDriverByUserId :one
+SELECT * FROM drivers WHERE user_id = $1;
+

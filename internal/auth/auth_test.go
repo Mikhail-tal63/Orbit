@@ -81,6 +81,24 @@ func (f *FakeAuthRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*db
 	}
 	return user, nil
 }
+func (f *FakeAuthRepository) UpdateUserRole(
+    ctx context.Context,
+    params db.UpdateUserRoleParams,
+) (*db.User, error) {
+
+    if f.errToReturn != nil {
+        return nil, f.errToReturn
+    }
+
+    user, ok := f.usersByID[params.ID]
+    if !ok {
+        return nil, nil
+    }
+
+    user.Role = params.Role
+
+    return user, nil
+}
 
 func validRegisterRequest() *RegisterRequest {
 	return &RegisterRequest{
