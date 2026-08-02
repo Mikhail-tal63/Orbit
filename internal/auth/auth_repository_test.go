@@ -170,7 +170,7 @@ func TestAuthRepository_CreateUser(t *testing.T) {
 		require.NoError(t, err)
 
 		params2 := randomCreateUserParams(t)
-		params2.Email = params1.Email // Duplicate email
+		params2.Email = params1.Email 
 
 		user, err := repo.CreateUser(ctx, params2)
 		require.Error(t, err)
@@ -191,7 +191,7 @@ func TestAuthRepository_CreateUser(t *testing.T) {
 		require.NoError(t, err)
 
 		params2 := randomCreateUserParams(t)
-		params2.Username = params1.Username // Duplicate username
+		params2.Username = params1.Username 
 
 		user, err := repo.CreateUser(ctx, params2)
 		require.Error(t, err)
