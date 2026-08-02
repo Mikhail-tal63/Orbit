@@ -11,6 +11,7 @@ import (
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/magiconair/properties/assert"
 	"github.com/pressly/goose/v3"
 	"github.com/stretchr/testify/require"
@@ -191,3 +192,5 @@ func TestDriverRepository_CreateDriver(t *testing.T) {
 		require.Error(t, err)
 	})
 }
+
+//fuck github actions
