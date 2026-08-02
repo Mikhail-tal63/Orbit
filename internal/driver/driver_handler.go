@@ -48,3 +48,24 @@ func (h *DriverHandler) CreateDriver(w http.ResponseWriter, r *http.Request) {
 		"driver":  driver,
 	})
 }
+
+func (h *DriverHandler) GetDriverByUserId(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+	driver, err := h.service.GetDriverByUserId(r.Context(), userID)
+	if err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "here you go",
+		"dirver":  driver,
+	}); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+}
