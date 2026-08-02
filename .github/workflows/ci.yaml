@@ -6,7 +6,7 @@ on:
       - main
       - auth
       - driver
-      - vehicle
+      
 
   pull_request:
     branches:
