@@ -2,11 +2,13 @@ package driver
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Mikhail-Tal63/Orbit/internal/auth"
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/internal/vehicle"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -43,7 +45,6 @@ func (s *DriverSevrice) CreateDriver(ctx context.Context, userID uuid.UUID, driv
 		ID:     uuid.New(),
 		UserID: userID,
 	}
-	
 
 	changedRole := db.UpdateUserRoleParams{
 		ID:   userID,
@@ -60,8 +61,6 @@ func (s *DriverSevrice) CreateDriver(ctx context.Context, userID uuid.UUID, driv
 	driverRepo := NewDriverRepository(q)
 	vehicleRepo := vehicle.NewVechileRepository(q)
 	userRepo := auth.NewAuthRepository(q)
-
-
 
 	createdDriver, err := driverRepo.CreateDriver(ctx, newDriver)
 	if err != nil {
@@ -99,5 +98,27 @@ func (s *DriverSevrice) CreateDriver(ctx context.Context, userID uuid.UUID, driv
 		CompletedRides:   createdDriver.CompletedRides,
 		CreatedAt:        createdDriver.CreatedAt,
 		UpdatedAt:        createdDriver.UpdatedAt,
+	}, nil
+}
+
+func (s *DriverSevrice) GetDriverByUserId(ctx context.Context, userID uuid.UUID) (*DriverDTO, error) {
+	driver, err := s.repository.GetDriverByUserId(ctx, userID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrDriverNotFound
+		}
+		return nil, err
+	}
+
+	return &DriverDTO{
+		ID:               driver.ID,
+		IsOnline:         driver.IsOnline,
+		IsAvailable:      driver.IsAvailable,
+		CurrentLatitude:  driver.CurrentLatitude,
+		CurrentLongitude: driver.CurrentLongitude,
+		Rating:           driver.Rating,
+		CompletedRides:   driver.CompletedRides,
+		CreatedAt:        driver.CreatedAt,
+		UpdatedAt:        driver.UpdatedAt,
 	}, nil
 }
