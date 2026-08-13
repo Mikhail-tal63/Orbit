@@ -1,6 +1,9 @@
 package websocket
 
-import "sync"
+import (
+	"log"
+	"sync"
+)
 
 type Hub struct {
 	mu         sync.RWMutex
@@ -43,4 +46,34 @@ func (h *Hub) RemoveClient(c *Client) {
 	}
 
 	c.closeSend()
+}
+
+func (h *Hub) BroadcastToRide(rideID string, payload []byte) {
+	h.mu.RLock()
+
+	room := h.rooms[rideID]
+
+	clients := make([]*Client, 0, len(room))
+	for c := range room {
+		clients = append(clients, c)
+	}
+
+	h.mu.RUnlock()
+
+	for _, c := range clients {
+		select {
+		case c.send <- payload:
+		default:
+			log.Printf(
+				"ws: dropping slow client user=%s ws=%s",
+				c.userID,
+				c.rideID,
+			)
+
+			select {
+			case h.unregister <- c:
+			default:
+			}
+		}
+	}
 }
