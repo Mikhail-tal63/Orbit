@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Mikhail-Tal63/Orbit/configs"
 	"github.com/Mikhail-Tal63/Orbit/middleware"
+	"github.com/Mikhail-Tal63/Orbit/utils"
+	
 
 	"github.com/gorilla/websocket"
 )
@@ -28,6 +31,40 @@ var upgrade = websocket.Upgrader{
 		}
 		return middleware.IsAllowedOrigin(origin)
 	},
+}
+
+func ServerWS(h *Hub, w http.ResponseWriter, r *http.Request) {
+	token := r.URL.Query().Get("token")
+	if token == "" {
+		http.Error(w, "missing token", http.StatusUnauthorized)
+		return
+	}
+
+	cfg := configs.Load()
+	userID, err := utils.VerifyJWT([]byte(cfg.JWTSecret), token)
+	if err != nil {
+		http.Error(w, "invalid or expired token", http.StatusUnauthorized)
+		return
+	}
+
+	conn, err := upgrade.Upgrade(w, r, nil)
+	if err != nil {
+		log.Printf("ws: upgrade error: %v", err)
+		return
+	}
+
+
+
+	client := &Client{
+		hub:    h,
+		conn:   conn,
+		send:   make(chan []byte, 256),
+		userID: userID.String(),
+	
+	}
+    h.register <- client
+	go client.WritePump()
+	go client.ReadPump()
 }
 
 func (c *Client) ReadPump() {
