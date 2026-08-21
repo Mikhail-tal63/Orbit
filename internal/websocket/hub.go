@@ -19,6 +19,16 @@ func NewHub() *Hub {
 		unregister: make(chan *Client, 64),
 	}
 }
+func (h *Hub) Run() {
+	for {
+		select {
+		case c := <-h.register:
+			h.AddClient(c)
+		case c := <-h.unregister:
+			h.RemoveClient(c)
+		}
+	}
+}
 
 func (h *Hub) AddClient(c *Client) {
 	h.mu.Lock()
