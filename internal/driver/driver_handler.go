@@ -19,9 +19,11 @@ func NewDriverHandler(service *DriverSevrice) *DriverHandler {
 	}
 }
 
-func DriverRouter(mux *mux.Router) {
-
+func (h *DriverHandler) DriverRouter(mux *mux.Router) {
+	mux.HandleFunc("/drivers", h.CreateDriver).Methods("POST")
+	mux.HandleFunc("/drivers/me", h.GetDriverByUserId).Methods("GET")
 }
+
 
 func (h *DriverHandler) CreateDriver(w http.ResponseWriter, r *http.Request) {
 	var payload *CreateDriverRequest
