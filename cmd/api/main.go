@@ -24,6 +24,12 @@ func main() {
 	pool := database.Connect(*cfg)
 	defer pool.Close()
 
+	redisClient, err := database.NewReisClient(cfg.RedisAddrs)
+
+	if err != nil {
+		log.Fatalf("redis connection failed: %v", err)
+	}
+	defer redisClient.Close()
 	queries := db.New(pool)
 
 	// ── Repositories ────────────────────────────────────────
