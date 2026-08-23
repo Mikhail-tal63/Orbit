@@ -35,3 +35,29 @@ func (s *LocationService) RemoveDriverLocation(
 
 	return s.store.RemoveDriverLocation(ctx, driverID)
 }
+func (s *LocationService) FindNearbyDrivers(
+	ctx context.Context,
+	latitude float64,
+	longitude float64,
+	radiusKm float64,
+) ([]string, error) {
+
+	if latitude < -90 || latitude > 90 {
+		return nil, fmt.Errorf("invalid latitude")
+	}
+
+	if longitude < -180 || longitude > 180 {
+		return nil, fmt.Errorf("invalid longitude")
+	}
+
+	if radiusKm <= 0 {
+		return nil, fmt.Errorf("radius must be greater than zero")
+	}
+
+	return s.store.FindNearbyDrivers(
+		ctx,
+		latitude,
+		longitude,
+		radiusKm,
+	)
+}
