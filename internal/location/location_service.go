@@ -27,3 +27,11 @@ func (s *LocationService) UpdateDriverLocation(ctx context.Context, driverID str
 	return s.store.UpdateDriverLocation(ctx, driverID, latitude, longitude)
 
 }
+
+func (s *LocationService) RemoveDriverLocation(
+	ctx context.Context,
+	driverID string,
+) error {
+
+	return s.store.RemoveDriverLocation(ctx, driverID)
+}
