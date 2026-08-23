@@ -20,10 +20,15 @@ func NewRedisLocationStore(client *redis.Client) *RedisLocationStore {
 }
 
 func (r *RedisLocationStore) UpdateDriverLocation(ctx context.Context, driverID string, latitude float64, longitude float64) error {
-	err := r.client.GeoAdd(ctx, driverID, &redis.GeoLocation{
-		Longitude: longitude,
-		Latitude:  latitude,
-	}).Err()
+	err := r.client.GeoAdd(
+		ctx,
+		driverLocationKey,
+		&redis.GeoLocation{
+			Name:      driverID,
+			Longitude: longitude,
+			Latitude:  latitude,
+		},
+	).Err()
 	if err != nil {
 		return fmt.Errorf("failed to update driver location: %w", err)
 	}
