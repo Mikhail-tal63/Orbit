@@ -29,7 +29,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("redis connection failed: %v", err)
 	}
+
 	defer redisClient.Close()
+	
 	queries := db.New(pool)
 
 	// ── Repositories ────────────────────────────────────────
