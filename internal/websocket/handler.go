@@ -1,13 +1,17 @@
 package websocket
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/Mikhail-Tal63/Orbit/internal/driver"
+	"github.com/Mikhail-Tal63/Orbit/internal/location"
 	"github.com/Mikhail-Tal63/Orbit/middleware"
 	"github.com/Mikhail-Tal63/Orbit/utils"
+	"github.com/google/uuid"
 
 	"github.com/gorilla/websocket"
 )
@@ -32,16 +36,56 @@ var upgrade = websocket.Upgrader{
 }
 
 
-func ServerWS(h *Hub, jwtSecret []byte, w http.ResponseWriter, r *http.Request) {
+func ServerWS(
+	h *Hub,
+	jwtSecret []byte,
+	driverRepo driver.DriverRepository,
+	w http.ResponseWriter,
+	r *http.Request,
+) {
 	token := r.URL.Query().Get("token")
+
 	if token == "" {
-		http.Error(w, "missing token", http.StatusUnauthorized)
+		http.Error(
+			w,
+			"missing token",
+			http.StatusUnauthorized,
+		)
 		return
 	}
 
 	userID, err := utils.VerifyJWT(jwtSecret, token)
 	if err != nil {
-		http.Error(w, "invalid or expired token", http.StatusUnauthorized)
+		http.Error(
+			w,
+			"invalid or expired token",
+			http.StatusUnauthorized,
+		)
+		return
+	}
+
+	
+	userUUID, err := uuid.Parse(userID.String())
+	if err != nil {
+		http.Error(
+			w,
+			"invalid user id",
+			http.StatusUnauthorized,
+		)
+		return
+	}
+
+	
+	driverRecord, err := driverRepo.GetDriverByUserId(
+		r.Context(),
+		userUUID,
+	)
+	if err != nil {
+		http.Error(
+			w,
+			"user is not a driver",
+			http.StatusForbidden,
+		)
 		return
 	}
 
@@ -52,12 +96,15 @@ func ServerWS(h *Hub, jwtSecret []byte, w http.ResponseWriter, r *http.Request) 
 	}
 
 	client := &Client{
-		hub:    h,
-		conn:   conn,
-		send:   make(chan []byte, 256),
-		userID: userID.String(),
+		hub:      h,
+		conn:     conn,
+		send:     make(chan []byte, 256),
+		userID:   userID.String(),
+		driverID: driverRecord.ID.String(),
 	}
+
 	h.register <- client
+
 	go client.WritePump()
 	go client.ReadPump()
 }
@@ -91,18 +138,54 @@ func (c *Client) ReadPump() {
 			continue
 		}
 		switch env.Type {
-		case "join_ride":
-			c.hub.AddClient(c)
-		case "leave_ride":
-			c.hub.RemoveClient(c)
-		case "ping":
-			pong, _ := json.Marshal(map[string]string{"Type": "pong"})
-			select {
-			case c.send <- pong:
-			default:
-			}
 
-		}
+case "join_ride":
+	c.rideID = env.RideID
+	c.hub.AddClient(c)
+	
+
+case "leave_ride":
+	c.hub.RemoveClient(c)
+
+case EventLocationUpdate:
+	var locationUpdate location.LocationUpdate
+
+	if err := json.Unmarshal(row, &locationUpdate); err != nil {
+		log.Printf(
+			"ws: invalid location update user=%s: %v",
+			c.userID,
+			err,
+		)
+		continue
+	}
+
+	err := c.hub.locationService.UpdateDriverLocation(
+		context.Background(),
+		c.driverID,
+		locationUpdate.Latitude,
+		locationUpdate.Longitude,
+	)
+
+	if err != nil {
+		log.Printf(
+			"ws: failed to update location driver=%s: %v",
+			c.driverID,
+			err,
+		)
+		continue
+	}
+case "ping":
+	pong, _ := json.Marshal(
+		map[string]string{
+			"type": "pong",
+		},
+	)
+
+	select {
+	case c.send <- pong:
+	default:
+	}
+}
 
 	}
 }

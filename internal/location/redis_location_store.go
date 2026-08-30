@@ -36,7 +36,7 @@ func (r *RedisLocationStore) UpdateDriverLocation(ctx context.Context, driverID 
 	return nil
 }
 
-func (r *RedisLocationStore) RemoveNearbyLocation(ctx context.Context, driverID string) error {
+func (r *RedisLocationStore) RemoveDriverLocation(ctx context.Context, driverID string) error {
 	err := r.client.ZRem(ctx, driverLocationKey, driverID).Err()
 	if err != nil {
 		return fmt.Errorf("failed to remove driver location: %w", err)
@@ -44,7 +44,7 @@ func (r *RedisLocationStore) RemoveNearbyLocation(ctx context.Context, driverID 
 	return nil
 }
 
-func (r *RedisLocationStore) FindDriverLocation(ctx context.Context, latitude float64, longitude float64, radiuskm float64) ([]string, error) {
+func (r *RedisLocationStore) FindNearbyDrivers(ctx context.Context, latitude float64, longitude float64, radiuskm float64) ([]string, error) {
 	drivers, err := r.client.GeoSearch(ctx, driverLocationKey, &redis.GeoSearchQuery{
 		Latitude:   latitude,
 		Longitude:  longitude,
