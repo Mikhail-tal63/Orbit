@@ -69,3 +69,20 @@ func (h *DriverHandler) GetDriverByUserId(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+func (h *DriverHandler) DriverOnline(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := h.service.DriverOnline(r.Context(), userID); err != nil {
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "you are online",
+	}); err != nil {
+		jsonR.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+}
