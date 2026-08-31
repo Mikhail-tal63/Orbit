@@ -122,3 +122,10 @@ func (s *DriverSevrice) GetDriverByUserId(ctx context.Context, userID uuid.UUID)
 		UpdatedAt:        driver.UpdatedAt,
 	}, nil
 }
+
+func (s *DriverSevrice) DriverOnline(ctx context.Context, userid uuid.UUID) error {
+	if err := s.repository.DriverOnline(ctx, userid); err != nil {
+		return err
+	}
+	return nil
+}

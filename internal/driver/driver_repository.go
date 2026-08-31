@@ -10,6 +10,7 @@ import (
 type DriverRepository interface {
 	CreateDriver(ctx context.Context, params db.CreateDriverParams) (*db.Driver, error)
 	GetDriverByUserId(ctx context.Context, userID uuid.UUID) (*db.Driver, error)
+	DriverOnline(ctx context.Context,userid uuid.UUID)error
 }
 
 type DriverRepositoryImpl struct {
