@@ -1,0 +1,58 @@
+# Air configuration for Orbit backend
+# Docs: https://github.com/air-verse/air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  # Command to build the binary
+  cmd = "go build -o ./tmp/main ./cmd/api"
+  # Binary to run after build
+  bin = "./tmp/main"
+  # Full binary run command (use this to pass flags/env)
+  full_bin = "./tmp/main"
+  # Directories to watch for changes
+  include_dir = ["cmd", "internal", "middleware", "pkg", "utils", "configs"]
+  # File extensions to watch
+  include_ext = ["go", "tpl", "tmpl", "html"]
+  # Directories to exclude from watching
+  exclude_dir = ["tmp", "vendor", ".git", "migrations", "scripts"]
+  # Files to exclude
+  exclude_file = []
+  # Regex patterns to exclude
+  exclude_regex = ["_test\\.go"]
+  # Watch for changes in vendor dir
+  exclude_unchanged = true
+  # Follow symlinks
+  follow_symlink = false
+  # Print log in color
+  log = "build-errors.log"
+  # Kill the running process and restart on file change
+  kill_delay = "200ms"
+  # Send interrupt signal before killing process (graceful shutdown)
+  send_interrupt = true
+  # Delay before re-running after a change (debounce)
+  delay = 1000 # ms
+  # Stop running if build fails
+  stop_on_error = false
+  # Rerun the binary on every reload (even without build errors)
+  rerun = false
+  rerun_delay = 500
+
+[log]
+  # Show log time
+  time = true
+  # Only show main log (suppress build output)
+  main_only = false
+
+[color]
+  # Customize each log type color
+  # e.g., app=red
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  # Delete tmp dir on exit
+  clean_on_exit = true

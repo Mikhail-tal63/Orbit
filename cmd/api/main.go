@@ -9,6 +9,7 @@ import (
 	"github.com/Mikhail-Tal63/Orbit/internal/database"
 	db "github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/internal/driver"
+	"github.com/Mikhail-Tal63/Orbit/internal/location"
 	"github.com/Mikhail-Tal63/Orbit/internal/vehicle"
 	"github.com/Mikhail-Tal63/Orbit/internal/websocket"
 	"github.com/Mikhail-Tal63/Orbit/middleware"
@@ -29,13 +30,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("redis connection failed: %v", err)
 	}
+
 	defer redisClient.Close()
+
 	queries := db.New(pool)
 
 	// ── Repositories ────────────────────────────────────────
 	authRepo := auth.NewAuthRepository(queries)
 	driverRepo := driver.NewDriverRepository(queries)
 	vehicleRepo := vehicle.NewVechileRepository(queries)
+	locationRepo := location.NewRedisLocationStore(redisClient)
 
 	// ── Services ────────────────────────────────────────────
 	authService := auth.NewAuthService(
@@ -50,12 +54,14 @@ func main() {
 		pool,
 	)
 
+	locationService := location.NewLocatingService(locationRepo)
+
 	// ── Handlers ────────────────────────────────────────────
 	authHandler := auth.NewAuthHandler(authService)
 	driverHandler := driver.NewDriverHandler(driverService)
 
 	// ── WebSocket ───────────────────────────────────────────
-	hub := websocket.NewHub()
+	hub := websocket.NewHub(locationService)
 	go hub.Run()
 
 	// ── Router ──────────────────────────────────────────────
@@ -77,6 +83,7 @@ func main() {
 		websocket.ServerWS(
 			hub,
 			[]byte(cfg.JWTSecret),
+			driverRepo,
 			w,
 			r,
 		)

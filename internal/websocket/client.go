@@ -11,6 +11,7 @@ type Client struct {
 	send chan []byte
 
 	userID string
+    driverID string
 
 	rideID string
 
