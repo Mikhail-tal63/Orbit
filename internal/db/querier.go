@@ -18,6 +18,8 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GoOffline(ctx context.Context, userID uuid.UUID) error
+	GoOnline(ctx context.Context, userID uuid.UUID) error
 	UpdateLastLogin(ctx context.Context, arg UpdateLastLoginParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 }

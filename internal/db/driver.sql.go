@@ -67,3 +67,30 @@ func (q *Queries) GetDriverByUserId(ctx context.Context, userID uuid.UUID) (Driv
 	)
 	return i, err
 }
+
+const goOffline = `-- name: GoOffline :exec
+UPDATE drivers
+SET
+    is_online = FALSE,
+    is_available = FALSE,
+    updated_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) GoOffline(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, goOffline, userID)
+	return err
+}
+
+const goOnline = `-- name: GoOnline :exec
+UPDATE drivers
+SET 
+is_online = TRUE,
+updated_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) GoOnline(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, goOnline, userID)
+	return err
+}
