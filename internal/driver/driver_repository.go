@@ -37,3 +37,10 @@ func (r *DriverRepositoryImpl) GetDriverByUserId(ctx context.Context, userID uui
 	}
 	return &driver, nil
 }
+
+func (r *DriverRepositoryImpl) DriverOnline(ctx context.Context, userid uuid.UUID) error {
+	if err := r.queries.GoOnline(ctx, userid); err != nil {
+		return err
+	}
+	return nil
+}
