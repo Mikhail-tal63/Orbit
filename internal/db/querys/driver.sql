@@ -12,7 +12,7 @@ RETURNING *;
 -- name: GetDriverByUserId :one
 SELECT * FROM drivers WHERE user_id = $1;
 
--- name: GoOnline :exec
+-- name: GoOnline :execrows
 UPDATE drivers
 SET 
 is_online = TRUE,

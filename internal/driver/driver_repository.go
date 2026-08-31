@@ -3,6 +3,7 @@ package driver
 import (
 	"context"
 
+
 	"github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/google/uuid"
 )
@@ -40,8 +41,11 @@ func (r *DriverRepositoryImpl) GetDriverByUserId(ctx context.Context, userID uui
 }
 
 func (r *DriverRepositoryImpl) DriverOnline(ctx context.Context, userid uuid.UUID) error {
-	if err := r.queries.GoOnline(ctx, userid); err != nil {
+	rows,err := r.queries.GoOnline(ctx, userid);if err != nil {
 		return err
+	}
+	if rows == 0 {
+	return ErrDriverNotFound
 	}
 	return nil
 }

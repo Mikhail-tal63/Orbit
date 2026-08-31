@@ -82,7 +82,7 @@ func (q *Queries) GoOffline(ctx context.Context, userID uuid.UUID) error {
 	return err
 }
 
-const goOnline = `-- name: GoOnline :exec
+const goOnline = `-- name: GoOnline :execrows
 UPDATE drivers
 SET 
 is_online = TRUE,
@@ -90,7 +90,10 @@ updated_at = NOW()
 WHERE user_id = $1
 `
 
-func (q *Queries) GoOnline(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, goOnline, userID)
-	return err
+func (q *Queries) GoOnline(ctx context.Context, userID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, goOnline, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
