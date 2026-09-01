@@ -16,6 +16,7 @@ type Configs struct {
 	DBPassword    string
 	DBName        string
 	DBSSLMode     string
+	RedisAddrs    string
 	JWTSecret     string
 	JWTexpiration int64
 }
@@ -35,6 +36,7 @@ func Load() *Configs {
 		DBPassword:    os.Getenv("DB_PASSWORD"),
 		DBName:        os.Getenv("DB_NAME"),
 		DBSSLMode:     os.Getenv("DB_SSLMODE"),
+		RedisAddrs:    os.Getenv("REDIS_ADDRS"),
 		JWTSecret:     os.Getenv("JWT_SECRET"),
 		JWTexpiration: getEnvInt("JWT_EXPIRATION", 3600*24*7),
 	}

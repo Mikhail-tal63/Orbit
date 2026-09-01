@@ -35,7 +35,6 @@ func (s *DriverSevrice) CreateDriver(ctx context.Context, userID uuid.UUID, driv
 		return nil, err
 	}
 	if existedUser == nil {
-		return nil, auth.ErrUserNotFound
 	}
 
 	if existedUser.Role == "Driver" {
