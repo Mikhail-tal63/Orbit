@@ -10,6 +10,8 @@ import (
 type DriverRepository interface {
 	CreateDriver(ctx context.Context, params db.CreateDriverParams) (*db.Driver, error)
 	GetDriverByUserId(ctx context.Context, userID uuid.UUID) (*db.Driver, error)
+	DriverOnline(ctx context.Context, userid uuid.UUID) error
+	DriverOffline(ctx context.Context, userid uuid.UUID) error 
 }
 
 type DriverRepositoryImpl struct {
@@ -36,4 +38,27 @@ func (r *DriverRepositoryImpl) GetDriverByUserId(ctx context.Context, userID uui
 		return nil, err
 	}
 	return &driver, nil
+}
+
+func (r *DriverRepositoryImpl) DriverOnline(ctx context.Context, userid uuid.UUID) error {
+	rows, err := r.queries.GoOnline(ctx, userid)
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrDriverNotFound
+	}
+	return nil
+}
+
+func (r *DriverRepositoryImpl) DriverOffline(ctx context.Context, userid uuid.UUID) error {
+	rows, err := r.queries.GoOffline(ctx, userid)
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrDriverNotFound
+	}
+
+	return nil
 }
