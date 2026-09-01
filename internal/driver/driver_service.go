@@ -124,10 +124,16 @@ func (s *DriverSevrice) GetDriverByUserId(ctx context.Context, userID uuid.UUID)
 }
 
 func (s *DriverSevrice) DriverOnline(ctx context.Context, userid uuid.UUID) error {
-	if err := s.repository.DriverOnline(ctx, userid); err != nil {
+	driver, err := s.repository.GetDriverByUserId(ctx, userid)
+	if err != nil {
 		return err
 	}
-	return nil
+
+	if driver.IsOnline  {
+		return nil
+	}
+	
+	return s.repository.DriverOnline(ctx, userid)
 }
 
 func (s *DriverSevrice) DriverOffline(ctx context.Context, userid uuid.UUID) error {
@@ -136,7 +142,7 @@ func (s *DriverSevrice) DriverOffline(ctx context.Context, userid uuid.UUID) err
 		return err
 	}
 
-	if driver.IsOnline == false {
+	if !driver.IsOnline  {
 		return nil
 	}
 	return s.repository.DriverOffline(ctx, userid)
