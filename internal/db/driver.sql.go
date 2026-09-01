@@ -68,7 +68,7 @@ func (q *Queries) GetDriverByUserId(ctx context.Context, userID uuid.UUID) (Driv
 	return i, err
 }
 
-const goOffline = `-- name: GoOffline :exec
+const goOffline = `-- name: GoOffline :execrows
 UPDATE drivers
 SET
     is_online = FALSE,
@@ -77,9 +77,12 @@ SET
 WHERE user_id = $1
 `
 
-func (q *Queries) GoOffline(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, goOffline, userID)
-	return err
+func (q *Queries) GoOffline(ctx context.Context, userID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, goOffline, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const goOnline = `-- name: GoOnline :execrows

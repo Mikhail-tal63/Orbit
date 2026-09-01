@@ -19,7 +19,7 @@ is_online = TRUE,
 updated_at = NOW()
 WHERE user_id = $1;
 
--- name: GoOffline :exec
+-- name: GoOffline :execrows
 UPDATE drivers
 SET
     is_online = FALSE,
