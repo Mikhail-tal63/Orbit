@@ -103,7 +103,6 @@ func ServerWS(
 		driverID: driverRecord.ID.String(),
 	}
 
-	h.register <- client
 
 	go client.WritePump()
 	go client.ReadPump()
