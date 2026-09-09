@@ -111,9 +111,21 @@ func ServerWS(
 
 func (c *Client) ReadPump() {
 	defer func() {
-		c.hub.unregister <- c
-		c.conn.Close()
-	}()
+	c.hub.unregister <- c
+
+	if err := c.hub.locationService.RemoveDriverLocation(
+		context.Background(),
+		c.driverID,
+	); err != nil {
+		log.Printf(
+			"ws: failed to remove driver location driver=%s: %v",
+			c.driverID,
+			err,
+		)
+	}
+
+	c.conn.Close()
+}()
 
 	c.conn.SetReadLimit(maxMessageSize)
 	_ = c.conn.SetReadDeadline(time.Now().Add(pongwait))
