@@ -116,3 +116,19 @@ func (q *Queries) GoOnline(ctx context.Context, userID uuid.UUID) (int64, error)
 	}
 	return result.RowsAffected(), nil
 }
+
+const unavailable = `-- name: Unavailable :execrows
+UPDATE drivers 
+SET 
+is_available = FALSE,
+updated_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) Unavailable(ctx context.Context, userID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, unavailable, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}

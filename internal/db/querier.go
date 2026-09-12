@@ -21,6 +21,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GoOffline(ctx context.Context, userID uuid.UUID) (int64, error)
 	GoOnline(ctx context.Context, userID uuid.UUID) (int64, error)
+	Unavailable(ctx context.Context, userID uuid.UUID) (int64, error)
 	UpdateLastLogin(ctx context.Context, arg UpdateLastLoginParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 }

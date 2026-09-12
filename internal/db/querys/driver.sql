@@ -33,3 +33,10 @@ SET
 is_available = TRUE,
 updated_at = NOW()
 WHERE user_id = $1;
+
+-- name: Unavailable :execrows
+UPDATE drivers 
+SET 
+is_available = FALSE,
+updated_at = NOW()
+WHERE user_id = $1;
