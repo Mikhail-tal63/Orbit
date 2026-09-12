@@ -62,3 +62,14 @@ func (r *DriverRepositoryImpl) DriverOffline(ctx context.Context, userid uuid.UU
 
 	return nil
 }
+
+func (r *DriverRepositoryImpl) IsAvailable(ctx context.Context,userID uuid.UUID)error{
+	rows, err :=  r.queries.Available(ctx,userID)
+	if err !=nil {
+		return err
+	}
+	if rows == 0 {
+		return ErrDriverNotFound
+	}
+	return nil
+}
