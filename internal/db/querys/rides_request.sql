@@ -1,4 +1,4 @@
--- name: CreateRide :one
+-- name: CreateRideReq :one
 INSERT INTO ride_requests (
         id,
     passenger_id,

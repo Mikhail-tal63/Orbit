@@ -12,7 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createRide = `-- name: CreateRide :one
+const createRideReq = `-- name: CreateRideReq :one
 INSERT INTO ride_requests (
         id,
     passenger_id,
@@ -50,7 +50,7 @@ INSERT INTO ride_requests (
 RETURNING id, passenger_id, driver_id, pickup_latitude, pickup_longitude, destination_latitude, destination_longitude, pickup_address, destination_address, estimated_distance_km, estimated_duration_minutes, estimated_price, status, expires_at, created_at, updated_at
 `
 
-type CreateRideParams struct {
+type CreateRideReqParams struct {
 	ID                       uuid.UUID        `json:"id"`
 	PassengerID              uuid.UUID        `json:"passenger_id"`
 	DriverID                 pgtype.UUID      `json:"driver_id"`
@@ -66,8 +66,8 @@ type CreateRideParams struct {
 	ExpiresAt                pgtype.Timestamp `json:"expires_at"`
 }
 
-func (q *Queries) CreateRide(ctx context.Context, arg CreateRideParams) (RideRequest, error) {
-	row := q.db.QueryRow(ctx, createRide,
+func (q *Queries) CreateRideReq(ctx context.Context, arg CreateRideReqParams) (RideRequest, error) {
+	row := q.db.QueryRow(ctx, createRideReq,
 		arg.ID,
 		arg.PassengerID,
 		arg.DriverID,
