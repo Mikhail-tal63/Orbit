@@ -13,6 +13,7 @@ import (
 type Querier interface {
 	Available(ctx context.Context, userID uuid.UUID) (int64, error)
 	CreateDriver(ctx context.Context, arg CreateDriverParams) (Driver, error)
+	CreateRide(ctx context.Context, arg CreateRideParams) (RideRequest, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (Vehicle, error)
 	GetDriverByUserId(ctx context.Context, userID uuid.UUID) (Driver, error)
