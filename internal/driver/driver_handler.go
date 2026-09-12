@@ -20,12 +20,13 @@ func NewDriverHandler(service *DriverSevrice) *DriverHandler {
 }
 
 func (h *DriverHandler) DriverRouter(mux *mux.Router) {
-	mux.HandleFunc("driver/online/{id}", h.DriverOnline).Methods("POST")
-	mux.HandleFunc("driver/offline/{id}", h.DriverOffline).Methods("POST")
+	mux.HandleFunc("/driver/online/{id}", h.DriverOnline).Methods("POST")
+	mux.HandleFunc("/driver/offline/{id}", h.DriverOffline).Methods("POST")
 	mux.HandleFunc("/drivers", h.CreateDriver).Methods("POST")
 	mux.HandleFunc("/drivers/me", h.GetDriverByUserId).Methods("GET")
+	mux.HandleFunc("/driver/is_available/{id}", h.IsAvailable).Methods("POST")
+	mux.HandleFunc("/driver/is_unavailable/{id}", h.IsUnavailable).Methods("POST")
 }
-
 
 func (h *DriverHandler) CreateDriver(w http.ResponseWriter, r *http.Request) {
 	var payload *CreateDriverRequest
@@ -103,6 +104,43 @@ func (h *DriverHandler) DriverOffline(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
 		"message": "user is offline",
+	}); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+
+}
+
+func (h *DriverHandler) IsAvailable(w http.ResponseWriter, r *http.Request) {
+	userID, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+	if err := h.service.IsAvailable(r.Context(), userID); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "driver is available",
+	}); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+}
+
+func (h *DriverHandler) IsUnavailable(w http.ResponseWriter, r *http.Request) {
+	userid, err := middleware.GetUserID(r.Context())
+	if err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+	if err := h.service.IsUnavailable(r.Context(), userid); err != nil {
+		httperror.Handle(w, err)
+		return
+	}
+	if err := jsonR.WriteJSON(w, http.StatusOK, map[string]any{
+		"message": "driver is unavailable",
 	}); err != nil {
 		httperror.Handle(w, err)
 		return

@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	Available(ctx context.Context, userID uuid.UUID) (int64, error)
 	CreateDriver(ctx context.Context, arg CreateDriverParams) (Driver, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (Vehicle, error)
@@ -20,6 +21,7 @@ type Querier interface {
 	GetUserByUsername(ctx context.Context, username string) (User, error)
 	GoOffline(ctx context.Context, userID uuid.UUID) (int64, error)
 	GoOnline(ctx context.Context, userID uuid.UUID) (int64, error)
+	Unavailable(ctx context.Context, userID uuid.UUID) (int64, error)
 	UpdateLastLogin(ctx context.Context, arg UpdateLastLoginParams) error
 	UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (User, error)
 }
