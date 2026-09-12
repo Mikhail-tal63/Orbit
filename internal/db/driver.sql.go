@@ -11,6 +11,22 @@ import (
 	"github.com/google/uuid"
 )
 
+const available = `-- name: Available :execrows
+UPDATE drivers 
+SET 
+is_available = TRUE,
+updated_at = NOW()
+WHERE user_id = $1
+`
+
+func (q *Queries) Available(ctx context.Context, userID uuid.UUID) (int64, error) {
+	result, err := q.db.Exec(ctx, available, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
 const createDriver = `-- name: CreateDriver :one
 INSERT INTO drivers (
         id ,
