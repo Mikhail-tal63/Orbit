@@ -146,3 +146,6 @@ func (s *DriverSevrice) DriverOffline(ctx context.Context, userid uuid.UUID) err
 	}
 	return s.repository.DriverOffline(ctx, userid)
 }
+func (s *DriverSevrice) IsAvailable(ctx context.Context,userID uuid.UUID)error{
+	return s.repository.IsAvailable(ctx,userID)
+}
