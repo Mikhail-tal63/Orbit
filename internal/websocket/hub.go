@@ -102,3 +102,24 @@ func (h *Hub) BroadcastToRide(
 		}
 	}
 }
+func (h *Hub) LeaveRide(c *Client) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if c.rideID == "" {
+		return
+	}
+
+	room, ok := h.rooms[c.rideID]
+	if !ok {
+		return
+	}
+
+	delete(room, c)
+
+	if len(room) == 0 {
+		delete(h.rooms, c.rideID)
+	}
+
+	c.rideID = ""
+}
