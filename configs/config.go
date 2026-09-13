@@ -19,6 +19,7 @@ type Configs struct {
 	RedisAddrs    string
 	JWTSecret     string
 	JWTexpiration int64
+	GeoService    string
 }
 
 func Load() *Configs {
@@ -39,6 +40,7 @@ func Load() *Configs {
 		RedisAddrs:    os.Getenv("REDIS_ADDRS"),
 		JWTSecret:     os.Getenv("JWT_SECRET"),
 		JWTexpiration: getEnvInt("JWT_EXPIRATION", 3600*24*7),
+		GeoService:    os.Getenv("GEOAPIFY_API_KEY"),
 	}
 }
 func getEnvInt(key string, fallback int64) int64 {

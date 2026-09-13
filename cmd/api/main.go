@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -9,7 +10,9 @@ import (
 	"github.com/Mikhail-Tal63/Orbit/internal/database"
 	db "github.com/Mikhail-Tal63/Orbit/internal/db"
 	"github.com/Mikhail-Tal63/Orbit/internal/driver"
+	"github.com/Mikhail-Tal63/Orbit/internal/geocoding"
 	"github.com/Mikhail-Tal63/Orbit/internal/location"
+	"github.com/Mikhail-Tal63/Orbit/internal/ride"
 	"github.com/Mikhail-Tal63/Orbit/internal/vehicle"
 	"github.com/Mikhail-Tal63/Orbit/internal/websocket"
 	"github.com/Mikhail-Tal63/Orbit/middleware"
@@ -35,11 +38,13 @@ func main() {
 
 	queries := db.New(pool)
 
+	geocod  := geocoding.NewGeoapifyService(cfg.GeoService)
 	// ── Repositories ────────────────────────────────────────
 	authRepo := auth.NewAuthRepository(queries)
 	driverRepo := driver.NewDriverRepository(queries)
 	vehicleRepo := vehicle.NewVechileRepository(queries)
 	locationRepo := location.NewRedisLocationStore(redisClient)
+	riderepo := ride.NewRideRepository(queries)
 
 	// ── Services ────────────────────────────────────────────
 	authService := auth.NewAuthService(
@@ -54,6 +59,8 @@ func main() {
 		pool,
 	)
 
+	rideService := ride.NewRideService(riderepo,geocod)
+fmt.Print(rideService)
 	locationService := location.NewLocatingService(locationRepo)
 
 	// ── Handlers ────────────────────────────────────────────
