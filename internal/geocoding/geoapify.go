@@ -22,7 +22,7 @@ func NewGeoapifyService(apiKey string) *GeoapifyService {
 
 type ReverseGeocodeResponse struct {
 	Results []struct {
-		Formated string `json:"formatted"`
+		Formated string `json:"formated"`
 	} `json:"results"`
 }
 
