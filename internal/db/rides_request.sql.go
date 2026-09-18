@@ -14,7 +14,7 @@ import (
 
 const createRideReq = `-- name: CreateRideReq :one
 INSERT INTO ride_requests (
-        id,
+       
     passenger_id,
     driver_id,
 
@@ -44,14 +44,12 @@ INSERT INTO ride_requests (
     $9,
     $10,
     $11,
-    $12,
-    $13
+    $12
 )
 RETURNING id, passenger_id, driver_id, pickup_latitude, pickup_longitude, destination_latitude, destination_longitude, pickup_address, destination_address, estimated_distance_km, estimated_duration_minutes, estimated_price, status, expires_at, created_at, updated_at
 `
 
 type CreateRideReqParams struct {
-	ID                       uuid.UUID        `json:"id"`
 	PassengerID              uuid.UUID        `json:"passenger_id"`
 	DriverID                 pgtype.UUID      `json:"driver_id"`
 	PickupLatitude           pgtype.Numeric   `json:"pickup_latitude"`
@@ -68,7 +66,6 @@ type CreateRideReqParams struct {
 
 func (q *Queries) CreateRideReq(ctx context.Context, arg CreateRideReqParams) (RideRequest, error) {
 	row := q.db.QueryRow(ctx, createRideReq,
-		arg.ID,
 		arg.PassengerID,
 		arg.DriverID,
 		arg.PickupLatitude,

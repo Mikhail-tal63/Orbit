@@ -1,6 +1,6 @@
 -- name: CreateRideReq :one
 INSERT INTO ride_requests (
-        id,
+       
     passenger_id,
     driver_id,
 
@@ -30,7 +30,6 @@ INSERT INTO ride_requests (
     $9,
     $10,
     $11,
-    $12,
-    $13
+    $12
 )
 RETURNING *;
