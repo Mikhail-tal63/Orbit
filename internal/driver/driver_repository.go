@@ -14,6 +14,7 @@ type DriverRepository interface {
 	DriverOffline(ctx context.Context, userid uuid.UUID) error
 	IsAvailable(ctx context.Context, userID uuid.UUID) error
 	IsUnavailable(ctx context.Context, userID uuid.UUID) error
+	GetAvailableDrivers(ctx context.Context) ([]*db.Driver, error) 
 }
 
 type DriverRepositoryImpl struct {

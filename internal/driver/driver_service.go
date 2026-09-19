@@ -152,3 +152,7 @@ func (s *DriverSevrice) IsAvailable(ctx context.Context, userID uuid.UUID) error
 func (s *DriverSevrice) IsUnavailable(ctx context.Context, userID uuid.UUID) error {
 	return s.repository.IsUnavailable(ctx, userID)
 }
+
+func (s *DriverSevrice) GetAvailableDrivers(ctx context.Context)([]*db.Driver,error){
+return s.repository.GetAvailableDrivers(ctx)
+}
