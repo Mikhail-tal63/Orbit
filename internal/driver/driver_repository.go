@@ -86,3 +86,17 @@ func (r *DriverRepositoryImpl) IsUnavailable(ctx context.Context, userID uuid.UU
 	}
 	return nil
 }
+func (r *DriverRepositoryImpl) GetAvailableDrivers(ctx context.Context) ([]*db.Driver, error) {
+	drivers, err := r.queries.GetAvailableDrivers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*db.Driver, len(drivers))
+
+	for i := range drivers {
+		result[i] = &drivers[i]
+	}
+
+	return result, nil
+}

@@ -62,6 +62,43 @@ func (q *Queries) CreateDriver(ctx context.Context, arg CreateDriverParams) (Dri
 	return i, err
 }
 
+const getAvailableDrivers = `-- name: GetAvailableDrivers :many
+SELECT id, user_id, is_online, is_available, current_latitude, current_longitude, rating, completed_rides, created_at, updated_at 
+FROM drivers 
+WHERE is_available = TRUE
+`
+
+func (q *Queries) GetAvailableDrivers(ctx context.Context) ([]Driver, error) {
+	rows, err := q.db.Query(ctx, getAvailableDrivers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Driver{}
+	for rows.Next() {
+		var i Driver
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.IsOnline,
+			&i.IsAvailable,
+			&i.CurrentLatitude,
+			&i.CurrentLongitude,
+			&i.Rating,
+			&i.CompletedRides,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDriverByUserId = `-- name: GetDriverByUserId :one
 SELECT id, user_id, is_online, is_available, current_latitude, current_longitude, rating, completed_rides, created_at, updated_at FROM drivers WHERE user_id = $1
 `
