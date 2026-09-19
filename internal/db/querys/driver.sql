@@ -40,3 +40,8 @@ SET
 is_available = FALSE,
 updated_at = NOW()
 WHERE user_id = $1;
+
+-- name: GetAvailableDrivers :many
+SELECT * 
+FROM drivers 
+WHERE is_available = TRUE;

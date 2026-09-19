@@ -14,6 +14,7 @@ type DriverRepository interface {
 	DriverOffline(ctx context.Context, userid uuid.UUID) error
 	IsAvailable(ctx context.Context, userID uuid.UUID) error
 	IsUnavailable(ctx context.Context, userID uuid.UUID) error
+	GetAvailableDrivers(ctx context.Context) ([]*db.Driver, error) 
 }
 
 type DriverRepositoryImpl struct {
@@ -85,4 +86,18 @@ func (r *DriverRepositoryImpl) IsUnavailable(ctx context.Context, userID uuid.UU
 		return ErrDriverNotFound
 	}
 	return nil
+}
+func (r *DriverRepositoryImpl) GetAvailableDrivers(ctx context.Context) ([]*db.Driver, error) {
+	drivers, err := r.queries.GetAvailableDrivers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]*db.Driver, len(drivers))
+
+	for i := range drivers {
+		result[i] = &drivers[i]
+	}
+
+	return result, nil
 }
