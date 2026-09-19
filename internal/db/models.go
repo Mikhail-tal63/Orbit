@@ -5,9 +5,61 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type RideStatus string
+
+const (
+	RideStatusRequested      RideStatus = "requested"
+	RideStatusSearching      RideStatus = "searching"
+	RideStatusAccepted       RideStatus = "accepted"
+	RideStatusDriverArriving RideStatus = "driver_arriving"
+	RideStatusDriverArrived  RideStatus = "driver_arrived"
+	RideStatusInProgress     RideStatus = "in_progress"
+	RideStatusCompleted      RideStatus = "completed"
+	RideStatusCancelled      RideStatus = "cancelled"
+	RideStatusExpired        RideStatus = "expired"
+)
+
+func (e *RideStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RideStatus(s)
+	case string:
+		*e = RideStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RideStatus: %T", src)
+	}
+	return nil
+}
+
+type NullRideStatus struct {
+	RideStatus RideStatus `json:"ride_status"`
+	Valid      bool       `json:"valid"` // Valid is true if RideStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRideStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.RideStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RideStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRideStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RideStatus), nil
+}
 
 type Driver struct {
 	ID               uuid.UUID        `json:"id"`
@@ -20,6 +72,25 @@ type Driver struct {
 	CompletedRides   pgtype.Int4      `json:"completed_rides"`
 	CreatedAt        pgtype.Timestamp `json:"created_at"`
 	UpdatedAt        pgtype.Timestamp `json:"updated_at"`
+}
+
+type RideRequest struct {
+	ID                       uuid.UUID        `json:"id"`
+	PassengerID              uuid.UUID        `json:"passenger_id"`
+	DriverID                 pgtype.UUID      `json:"driver_id"`
+	PickupLatitude           pgtype.Numeric   `json:"pickup_latitude"`
+	PickupLongitude          pgtype.Numeric   `json:"pickup_longitude"`
+	DestinationLatitude      pgtype.Numeric   `json:"destination_latitude"`
+	DestinationLongitude     pgtype.Numeric   `json:"destination_longitude"`
+	PickupAddress            string           `json:"pickup_address"`
+	DestinationAddress       string           `json:"destination_address"`
+	EstimatedDistanceKm      pgtype.Numeric   `json:"estimated_distance_km"`
+	EstimatedDurationMinutes int32            `json:"estimated_duration_minutes"`
+	EstimatedPrice           pgtype.Numeric   `json:"estimated_price"`
+	Status                   RideStatus       `json:"status"`
+	ExpiresAt                pgtype.Timestamp `json:"expires_at"`
+	CreatedAt                pgtype.Timestamp `json:"created_at"`
+	UpdatedAt                pgtype.Timestamp `json:"updated_at"`
 }
 
 type User struct {
