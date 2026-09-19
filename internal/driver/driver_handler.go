@@ -25,6 +25,7 @@ func (h *DriverHandler) DriverRouter(mux *mux.Router) {
 	mux.HandleFunc("/drivers/me", h.GetDriverByUserId).Methods("GET")
 	mux.HandleFunc("/driver/is_available/{id}", h.IsAvailable).Methods("POST")
 	mux.HandleFunc("/driver/is_unavailable/{id}", h.IsUnavailable).Methods("POST")
+	mux.HandleFunc("/available_drivers",h.GetAvailableDrivers).Methods("GET")
 }
 
 func (h *DriverHandler) CreateDriver(w http.ResponseWriter, r *http.Request) {
@@ -145,4 +146,19 @@ func (h *DriverHandler) IsUnavailable(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func (h *DriverHandler) GetAvailableDrivers(w http.ResponseWriter, r *http.Request){
+	drivers,err := h.service.GetAvailableDrivers(r.Context())
+	if err != nil {
+		httperror.Handle(w,err)
+		return
+	}
+	if err := jsonR.WriteJSON(w,http.StatusOK,map[string]any{
+		"message":"drivers abailbles",
+		"drivers":drivers,
+	});err!= nil {
+		httperror.Handle(w,err)
+		return
+	}
 }
