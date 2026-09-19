@@ -15,7 +15,6 @@ type DriverHandler struct {
 
 func NewDriverHandler(service *DriverSevrice) *DriverHandler {
 	return &DriverHandler{
-		service: service,
 	}
 }
 
