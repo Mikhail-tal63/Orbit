@@ -99,6 +99,34 @@ func (q *Queries) GetAvailableDrivers(ctx context.Context) ([]Driver, error) {
 	return items, nil
 }
 
+const getAvailableDriversBYID = `-- name: GetAvailableDriversBYID :many
+SELECT id
+FROM drivers
+WHERE id = ANY($1::uuid[])
+AND is_available
+AND is_online
+`
+
+func (q *Queries) GetAvailableDriversBYID(ctx context.Context, dollar_1 []uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, getAvailableDriversBYID, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getDriverByUserId = `-- name: GetDriverByUserId :one
 SELECT id, user_id, is_online, is_available, current_latitude, current_longitude, rating, completed_rides, created_at, updated_at FROM drivers WHERE user_id = $1
 `
