@@ -45,3 +45,10 @@ WHERE user_id = $1;
 SELECT * 
 FROM drivers 
 WHERE is_available = TRUE;
+
+-- name: GetAvailableDriversBYID :many
+SELECT id
+FROM drivers
+WHERE id = ANY($1::uuid[])
+AND is_available
+AND is_online;

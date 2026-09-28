@@ -17,6 +17,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (Vehicle, error)
 	GetAvailableDrivers(ctx context.Context) ([]Driver, error)
+	GetAvailableDriversBYID(ctx context.Context, dollar_1 []uuid.UUID) ([]uuid.UUID, error)
 	GetDriverByUserId(ctx context.Context, userID uuid.UUID) (Driver, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (User, error)
